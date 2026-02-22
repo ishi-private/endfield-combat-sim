@@ -147,6 +147,9 @@
   .tag.ult   {background:rgba(176,106,255,.15);color:var(--ult);}
 
   .dp{color:var(--green);} .dn{color:#ff5555;} .dz{color:var(--dim);}
+  /* イベントログ選択ハイライト */
+  .ltable tbody tr{cursor:pointer;}
+  .ltable tbody tr.selected td{background:rgba(0,229,255,.08)!important;}
   .mono{font-family:'Share Tech Mono',monospace;}
   .stg{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:0 4px;border-radius:2px;}
   .stg.s0{background:rgba(74,85,104,.2);color:var(--dim);}
@@ -285,9 +288,10 @@
         <div class="chain-grid" id="chainGrid"></div>
 
         <!-- グラフ -->
-        <div class="gw"><canvas id="spCanvas"    height="110"></canvas></div>
-        <div class="gw"><canvas id="ultCanvas"   height="80"></canvas></div>
-        <div class="gw"><canvas id="stageCanvas" height="70"></canvas></div>
+        <div class="gw"><canvas id="spCanvas"     height="110"></canvas></div>
+        <div class="gw"><canvas id="ultCanvas"    height="80"></canvas></div>
+        <div class="gw"><canvas id="stageCanvas"  height="70"></canvas></div>
+        <div class="gw"><canvas id="debuffCanvas" height="130"></canvas></div>
 
         <!-- ログ -->
         <div class="lbl" style="margin-bottom:8px">Event Log</div>
@@ -312,43 +316,54 @@
 const CHARS = {
   reephone: {
     id:'reephone', name:'リーフォン', arts:'物理', weapon:'長柄',
-    normal: { sp_regen:20, loop_sec:3.62, break_val:19 },
-    skill:  { sp_cost:100, name:'浄化身', break_val:10,
-              // 3段目に転倒（クラッシュ+1段）。クラッシュ中でない場合は追加で物理脆弱付与
-              crash_effect:{type:'knockdown'} },
-    chain:  { name:'忿怒形', cd_sec:16, trigger:'active_heavy_AND_crashed_or_vuln', break_val:5, grants_link:true },
-    ult:    { name:'不動心', ult_cost:90, cd_sec:15,
-              // 転倒を2回発動 → クラッシュ段階+2（上限4）
+    damage_type:'物理', // 全攻撃手段のダメージ属性
+    normal: { sp_regen:20, loop_sec:3.62, break_val:19, damage_type:'物理' },
+    skill:  { sp_cost:100, name:'浄化身', break_val:10, damage_type:'物理',
+              physical_anomaly:'knockdown', // 物理異常: 転倒
+              crash_effect:{type:'knockdown'},
+              vuln_dur:12,
+              vuln_pct_by_rank:{'1':5,'2':5,'3':5,'4':5,'5':5,'6':7,'7':7,'8':7,'9':9,'特化I':10,'特化II':10,'特化III':12} },
+    chain:  { name:'忿怒形', cd_sec:16, trigger:'active_heavy_AND_crashed_or_vuln', break_val:5, damage_type:'物理', grants_link:true },
+    ult:    { name:'不動心', ult_cost:90, cd_sec:15, damage_type:'物理',
+              physical_anomaly:'knockdown', // 物理異常: 転倒×2
               crash_effect:{type:'knockdown', times:2}, break_val:8 },
   },
   pogranicnik: {
     id:'pogranicnik', name:'ポグラニチニク', arts:'物理', weapon:'片手剣',
-    normal: { sp_regen:20, loop_sec:3.98, break_val:18 },
-    skill:  { sp_cost:100, name:'戦線粉砕', break_val:5,
+    damage_type:'物理',
+    normal: { sp_regen:20, loop_sec:3.98, break_val:18, damage_type:'物理' },
+    skill:  { sp_cost:100, name:'戦線粉砕', break_val:5, damage_type:'物理',
+              physical_anomaly:'crush', // 物理異常: 破砕
               crash_effect:{type:'crush'},
               sp_regen_by_stage:{0:0,1:5,2:10,3:20,4:30} },
-    chain:  { name:'満月迎撃', cd_sec:18, trigger:'on_crush_consumed',
+    chain:  { name:'満月迎撃', cd_sec:18, trigger:'on_crush_consumed', damage_type:'物理',
               sp_regen_by_consumed:{1:5,2:12,3:25,4:48}, break_val:3 },
-    ult:    { name:'盾兵旗隊、進め', ult_cost:90, cd_sec:10,
+    ult:    { name:'盾兵旗隊、進め', ult_cost:90, cd_sec:10, damage_type:'物理',
               sp_regen_disrupt:7.5, sp_regen_finisher:30, break_val:15 },
   },
   alderia: {
     id:'alderia', name:'アルデリア', arts:'自然', weapon:'アーツユニット',
-    normal: { sp_regen:18, loop_sec:4.42, break_val:18 },
-    skill:  { sp_cost:100, name:'ドリーラッシュ', break_val:10,
-              consume_corrosion_for_vuln:true },
-    chain:  { name:'イラプション・コラム', cd_sec:18,
+    damage_type:'自然', // 全攻撃手段のダメージ属性
+    normal: { sp_regen:18, loop_sec:4.42, break_val:18, damage_type:'自然' },
+    skill:  { sp_cost:100, name:'ドリーラッシュ', break_val:10, damage_type:'自然',
+              // アーツ付着なし・物理異常なし
+              consume_corrosion_for_vuln:true,
+              vuln_dur:30,
+              vuln_pct_by_rank:{'1':12,'2':12,'3':12,'4':13,'5':13,'6':13,'7':14,'8':14,'9':16,'特化I':17,'特化II':18,'特化III':20} },
+    chain:  { name:'イラプション・コラム', cd_sec:18, damage_type:'自然',
               trigger:'active_heavy_AND_clean_enemy',
               applies_corrosion:true, break_val:8 },
-    ult:    { name:'もふもふパーティ', ult_cost:90, break_val:12 },
+    ult:    { name:'もふもふパーティ', ult_cost:90, damage_type:'自然', break_val:12 },
   },
   chen_senyuu: {
     id:'chen_senyuu', name:'チェン・センユー', arts:'物理', weapon:'片手剣',
-    normal: { sp_regen:18, loop_sec:3.42, break_val:16 },
-    skill:  { sp_cost:100, name:'蒼穹返し', break_val:10,
+    damage_type:'物理',
+    normal: { sp_regen:18, loop_sec:3.42, break_val:16, damage_type:'物理' },
+    skill:  { sp_cost:100, name:'蒼穹返し', break_val:10, damage_type:'物理',
+              physical_anomaly:'float', // 物理異常: 浮遊
               crash_effect:{type:'float'} },
-    chain:  { name:'天河昇', cd_sec:16, trigger:'on_crash_stage_gained', break_val:7, applies_float:true },
-    ult:    { name:'凍風斬り', ult_cost:70, break_val:10 },
+    chain:  { name:'天河昇', cd_sec:16, trigger:'on_crash_stage_gained', break_val:7, damage_type:'物理', applies_float:true },
+    ult:    { name:'凍風斬り', ult_cost:70, damage_type:'物理', break_val:10 },
   },
 };
 
@@ -380,7 +395,7 @@ function calcUltGauge(nsc, csc, usg=0) {
   return (6.5 * nsc + 10 * csc) * (1 + usg * 0.01);
 }
 
-function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies=[] }) {
+function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies=[], skillRank='9' }) {
   const active = CHARS[activeId];
   const team   = teamIds.map(id => CHARS[id]);
 
@@ -418,6 +433,14 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
   const stageCurve = [];
   // 必殺技ゲージ曲線（操作キャラのみ）
   const ultCurve   = [];
+  // デバフ区間リスト: {type, cid, start, end, value, label}
+  // type: 'corrosion'|'vuln'|'crush'
+  // value: crush段階(1-4), vuln効果量(%), corrosion=null
+  const debuffSegs = [];
+  // 現在アクティブなデバフ区間の開始時刻（終了時に push）
+  let corrStart  = null;
+  let vulnSlots  = []; // 複数重複: [{cid, start, pct}]
+  let crushSlot  = null; // {start, stage, pct, dur}
 
   function clamp(v) { return Math.max(0, Math.min(SP_MAX, v)); }
 
@@ -491,7 +514,13 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
       if (chainCd[c.id] > 0) chainCd[c.id] = Math.max(0, +(chainCd[c.id]-STEP).toFixed(2));
     });
     if (vulnTimer > 0) { vulnTimer = Math.max(0, +(vulnTimer-STEP).toFixed(2)); if (vulnTimer===0) vuln=false; }
-    if (corrTimer > 0) { corrTimer = Math.max(0, +(corrTimer-STEP).toFixed(2)); if (corrTimer===0) corrosion=false; }
+    if (corrTimer > 0) {
+      corrTimer = Math.max(0, +(corrTimer-STEP).toFixed(2));
+      if (corrTimer===0) {
+        corrosion=false;
+        if (corrStart!==null) { debuffSegs.push({type:'corrosion',cid:'alderia',start:corrStart,end:t,value:null,label:'腐食'}); corrStart=null; }
+      }
+    }
 
     // 転倒/浮遊タイマー（リーフォン必殺技=転倒×2、チェン戦技=浮遊×1）
     kdTimer = +(kdTimer - STEP).toFixed(2);
@@ -538,25 +567,30 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
       totalBreakVal += bv;
       // 通常攻撃自体はログに記録しない（連携技トリガー時のみ記録）
 
-      // 重攻撃トリガーの連携技
-      if (chainCd[active.id] <= 0) {
-        const ch = active.chain;
-        if (ch.trigger === 'active_heavy_AND_crashed_or_vuln' && (crashStage>0||vuln)) {
-          chainCd[active.id] = ch.cd_sec;
-          chainCount[active.id]++;
+      // 重攻撃トリガーの連携技（チーム全員分チェック）
+      for (const member of team) {
+        if (chainCd[member.id] > 0) continue;
+        const ch = member.chain;
+
+        // リーフォン連携技: 操作キャラの重攻撃 かつ クラッシュ中or脆弱中
+        if (member.id === active.id &&
+            ch.trigger === 'active_heavy_AND_crashed_or_vuln' && (crashStage>0||vuln)) {
+          chainCd[member.id] = ch.cd_sec;
+          chainCount[member.id]++;
           const cbv = ch.break_val||0; totalBreakVal += cbv;
-          // リーフォン連携技: リンク状態付与
           if (ch.grants_link) { linkState = true; }
-          log(t, active.id, 'chain',
+          log(t, member.id, 'chain',
             `${ch.name}（重攻撃トリガー Stage:${crashStage}${vuln?' or 脆弱':''}${ch.grants_link?' → リンク獲得':''}）`, 0, sp, cbv);
         }
-        // アルデリア連携技: クラッシュ中でもアーツ付着中でもない（腐食は条件に含まない）
+
+        // アルデリア連携技: 誰の重攻撃でも発動（クラッシュ=0 かつ アーツ付着なし）
+        // アルデリア優先の有無にかかわらず常時発動
         if (ch.trigger === 'active_heavy_AND_clean_enemy' && crashStage===0) {
-          chainCd[active.id] = ch.cd_sec;
-          chainCount[active.id]++;
-          corrosion=true; corrTimer=CORR_DUR;
+          chainCd[member.id] = ch.cd_sec;
+          chainCount[member.id]++;
+          corrosion=true; corrTimer=CORR_DUR; corrStart=t;
           const cbv = ch.break_val||0; totalBreakVal += cbv;
-          log(t, active.id, 'chain', `${ch.name}（腐食付与 7s）`, 0, sp, cbv);
+          log(t, member.id, 'chain', `${ch.name}（腐食付与 ${CORR_DUR}s）`, 0, sp, cbv);
         }
       }
     }
@@ -564,11 +598,20 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
     // ══ 戦略評価（優先度順） ══
     // アルデリア先読み用: t2（次の重攻撃）までの残り時間
     const timeToNextHeavy = +(active.normal.loop_sec - normalTimer).toFixed(2);
-    // t2時点の腐食予測（タイマー考慮）
-    const corrWillExpireByT2 = corrosion && corrTimer <= timeToNextHeavy;
+
+    // t2時点の状態予測（タイマー考慮）
+    const corrWillExpireByT2  = corrosion && corrTimer <= timeToNextHeavy;
+    const vulnWillExpireByT2  = vuln      && vulnTimer <= timeToNextHeavy;
     const predictedCorrosion  = corrosion && !corrWillExpireByT2;
-    // t2でアルデリア連携技が発動可能か: クラッシュ=0 かつ t2時点で腐食なし
-    const alderiaChainPossibleAtT2 = crashStage === 0 && !predictedCorrosion;
+    // アルデリア付与の脆弱: vulnSlotsの最後がalderiaかどうかで判定
+    const lastVulnIsAlderia   = vulnSlots.length > 0 && vulnSlots[vulnSlots.length-1].cid === 'alderia';
+    const predictedAlderiaVuln = vuln && lastVulnIsAlderia && !vulnWillExpireByT2;
+    // t2でアルデリア連携技の条件を満たすか: クラッシュ=0 かつ 腐食もアルデリア脆弱もない
+    const alderiaChainPossibleAtT2 = crashStage === 0 && !predictedCorrosion && !predictedAlderiaVuln;
+
+    // 現在発動しようとしている戦技が「物理異常を与える戦技」かどうか
+    // （転倒・浮遊・破砕のcrash_effectを持つもの）
+    const isPhysAnomalySkill = !!(active.skill.physical_anomaly);
 
     // 優先度順に有効な戦略を評価して skillUser と holdSP を決定
     let skillUser  = active;  // デフォルト: 操作キャラ
@@ -585,23 +628,24 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
           skillUser = pog; stratLabel = '【4段待機】'; break;
         }
       }
-      else if (strat.id === 'reephone') {
-        // クラッシュ=0 → リーフォン戦技優先（物理脆弱付与）
-        const ree = team.find(c => c.id === 'reephone');
-        if (crashStage === 0 && ree) {
-          skillUser = ree; stratLabel = '【リーフォン優先】'; break;
-        }
-      }
       else if (strat.id === 'alderia') {
         const ald = team.find(c => c.id === 'alderia');
         if (ald) {
           if (corrosion) {
             // 腐食中 → アルデリア戦技を即代理発動（腐食消費→脆弱付与）
             skillUser = ald; stratLabel = '【アルデリア優先】'; break;
-          } else if (alderiaChainPossibleAtT2) {
-            // t2で連携技可能 かつ クラッシュ=0 → SP温存
+          }
+          // 物理異常戦技発動時(t1)にクラッシュ=0 かつ t2で腐食・アルデリア脆弱でない → SP温存
+          if (isPhysAnomalySkill && crashStage === 0 && alderiaChainPossibleAtT2) {
             holdSP = true; break;
           }
+        }
+      }
+      else if (strat.id === 'reephone') {
+        // クラッシュ=0 → リーフォン戦技優先（物理脆弱付与）
+        const ree = team.find(c => c.id === 'reephone');
+        if (crashStage === 0 && ree) {
+          skillUser = ree; stratLabel = '【リーフォン優先】'; break;
         }
       }
     }
@@ -637,6 +681,9 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
           extra = sk.sp_regen_by_stage[prev] || 0;
           sp = clamp(sp + extra); totalRegen += extra;
           crushCount++;
+          // 破砕デバフ区間記録
+          const crushData = {1:[15,12],2:[20,18],3:[25,24],4:[30,30]}[prev]||[0,0];
+          debuffSegs.push({type:'crush',cid:'pogranicnik',start:t,end:+(t+crushData[1]).toFixed(2),value:crushData[0],label:`破砕${prev}段(${crushData[0]}%/${crushData[1]}s)`});
           log(t, skillUser.id, 'skill',
             `${sk.name}${nonActive}${overflow}（破砕 ${prev}段消費 SP+${extra}${hadLink?' ★リンク':''}）`,
             -100+extra, sp, bv, hadLink);
@@ -654,7 +701,13 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
         const prev = crashStage;
         const res  = applyKnockdownOrFloat(crashStage);
         crashStage = res.newStage;
-        if (prev === 0) { vuln=true; vulnTimer=VULN_DUR; }
+        if (prev === 0) {
+          const reeSk = skillUser.skill;
+          const reePct = (reeSk.vuln_pct_by_rank||{})[skillRank] || 5;
+          const reeDur = reeSk.vuln_dur || VULN_DUR;
+          vuln=true; vulnTimer=reeDur;
+          vulnSlots.push({cid:'reephone', start:t, pct:reePct, dur:reeDur, label:`物理脆弱(リーフォン) ${reePct}%`});
+        }
         log(t, skillUser.id, 'skill',
           `${sk.name}${nonActive}${overflow}（転倒 Stage:${prev}→${crashStage}${prev===0?' + 物理脆弱':''}${hadLink?' ★リンク':''}）`,
           -100, sp, bv, hadLink);
@@ -675,8 +728,13 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
         let skillNote = '';
         if (sk.consume_corrosion_for_vuln && corrosion) {
           // 腐食消費 → 物理/アーツ脆弱付与（30秒）
-          corrosion=false; corrTimer=0; vuln=true; vulnTimer=VULN_DUR;
-          skillNote = '（腐食消費 → 物理/アーツ脆弱付与 30s）';
+          if (corrStart!==null) { debuffSegs.push({type:'corrosion',cid:'alderia',start:corrStart,end:t,value:null,label:'腐食'}); corrStart=null; }
+          const aldSk = skillUser.skill;
+          const aldPct = (aldSk.vuln_pct_by_rank||{})[skillRank] || 12;
+          const aldDur = aldSk.vuln_dur || VULN_DUR;
+          corrosion=false; corrTimer=0; vuln=true; vulnTimer=aldDur;
+          vulnSlots.push({cid:'alderia', start:t, pct:aldPct, dur:aldDur, label:`物理/アーツ脆弱(アルデリア) ${aldPct}%`});
+          skillNote = `（腐食消費 → 物理/アーツ脆弱 ${aldPct}% / ${aldDur}s）`;
         } else if (sk.consume_corrosion_for_vuln && !corrosion && vuln) {
           skillNote = '（脆弱継続中）';
         } else if (sk.consume_corrosion_for_vuln) {
@@ -738,8 +796,23 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategi
     };
   });
 
+  // 未終了デバフ区間をdurationでクローズ
+  if (corrStart !== null) debuffSegs.push({type:'corrosion',cid:'alderia',start:corrStart,end:duration,value:null,label:'腐食'});
+  // vulnSlots: vulnTimerが残っていれば duration でクローズ
+  if (vuln && vulnSlots.length > 0) {
+    const last = vulnSlots[vulnSlots.length-1];
+    if (!last.end) last.end = duration;
+  }
+  // vulnSlotsを debuffSegs に変換（各slotにendを設定）
+  // vulnのend = start + VULN_DUR（または duration）
+  vulnSlots.forEach(vs => {
+    const dur = vs.dur || VULN_DUR;
+    const end = Math.min(vs.start + dur, duration);
+    debuffSegs.push({type:'vuln', cid:vs.cid, start:vs.start, end:end, value:vs.pct, label:vs.label});
+  });
+
   return {
-    events, spCurve, stageCurve, ultCurve,
+    events, spCurve, stageCurve, ultCurve, debuffSegs,
     finalSp: sp, finalStage: crashStage,
     totalRegen, totalSpent, netSp: totalRegen - totalSpent,
     totalBreakVal,
@@ -763,12 +836,16 @@ let teamIds    = ['reephone','pogranicnik','alderia','chen_senyuu'];
 let duration   = 60;
 let kdInterval = 20;
 let initStage  = 0;
+let skillRank  = '9';
 // 戦略リスト（優先度順、上が高優先）
 // enabled: ON/OFF, id: 戦略識別子
+let highlightTime = -1; // クリック選択中の時刻（-1=なし）
+let lastResult = null;  // 最後のシミュレーション結果（ハイライト再描画用）
+
 let strategies = [
   { id:'crush4',   enabled:true,  name:'4段待機',         desc:'クラッシュ4段時にポグラニチニクの戦技を優先発動' },
+  { id:'alderia',  enabled:true,  name:'アルデリア優先',   desc:'物理異常戦技発動時にクラッシュ=0なら、t2で腐食・脆弱でなければSP温存。腐食中は即発動（脆弱付与）' },
   { id:'reephone', enabled:true,  name:'リーフォン優先',   desc:'クラッシュ=0の時にリーフォンの戦技を優先発動（物理脆弱付与）' },
-  { id:'alderia',  enabled:true,  name:'アルデリア優先',   desc:'t2で連携技可能 かつ クラッシュ=0 ならSP温存。腐食中は即発動（脆弱付与）' },
 ];
 
 function init() {
@@ -786,6 +863,7 @@ function init() {
   });
   renderTeam();
   renderCharStats();
+  document.getElementById('rankSel').onchange = e => { skillRank = e.target.value; run(); };
   document.getElementById('timeSlider').oninput = e => {
     duration=+e.target.value;
     document.getElementById('timeVal').textContent=duration+'s'; run();
@@ -898,7 +976,7 @@ function renderTeam() {
 function run() {
   // キャラのbaseline状態をリセット
   Object.values(CHARS).forEach(c => { c._nscBaseline=0; });
-  const r = simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies });
+  const r = simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies, skillRank });
   render(r);
 }
 
@@ -906,6 +984,7 @@ const STAGE_COLORS = ['var(--dim)','var(--c1)','var(--c2)','var(--c3)','var(--c4
 const STAGE_NOTES  = ['未クラッシュ','クラッシュ 1段','クラッシュ 2段','クラッシュ 3段','クラッシュ 4段（最大）'];
 
 function render(r) {
+  lastResult = r;
   // クラッシュ段階
   for(let i=1;i<=4;i++) {
     const p=document.getElementById('pip'+i);
@@ -958,6 +1037,7 @@ function render(r) {
 
   // グラフ
   drawLineGraph('spCanvas',    r.spCurve,    r.duration, 300, 'rgba(0,229,255,.6)',   'rgba(0,229,255,.07)',    'SP');
+  drawDebuffChart('debuffCanvas', r.debuffSegs, r.duration);
   drawLineGraph('ultCanvas',   r.ultCurve,   r.duration, r.activeUltCost,
                                                                'rgba(176,106,255,.6)', 'rgba(176,106,255,.07)', 'ULT');
   drawStageGraph('stageCanvas', r.stageCurve, r.duration);
@@ -977,7 +1057,7 @@ function render(r) {
     const labelColor = e.isLink ? 'var(--c1)' : 'var(--dim)';
     const cname = CHARS[e.cid] ? CHARS[e.cid].name : e.cid;
     const rowCls = e.isLink ? 'link-row' : '';
-    return `<tr class="${rowCls}">
+    return `<tr class="${rowCls}" onclick="selectLogRow(this, ${e.t})">
       <td class="mono" style="color:var(--dim)">${e.t.toFixed(1)}s</td>
       <td style="font-size:.64rem">${cname}</td>
       <td>${tagHtml} <span style="color:${labelColor}">${e.label}</span></td>
@@ -992,6 +1072,23 @@ function render(r) {
 }
 
 // ─── グラフ描画 ───
+function selectLogRow(row, time) {
+  document.querySelectorAll('.ltable tbody tr').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+  highlightTime = time;
+  redrawHighlights();
+}
+
+function redrawHighlights() {
+  if (!lastResult) return;
+  const r = lastResult;
+  drawLineGraph('spCanvas',    r.spCurve,    r.duration, 300, 'rgba(0,229,255,.6)',   'rgba(0,229,255,.07)',    'SP');
+  drawLineGraph('ultCanvas',   r.ultCurve,   r.duration, r.activeUltCost,
+                                                          'rgba(176,106,255,.6)', 'rgba(176,106,255,.07)', 'ULT');
+  drawStageGraph('stageCanvas', r.stageCurve, r.duration);
+  drawDebuffChart('debuffCanvas', r.debuffSegs, r.duration);
+}
+
 function drawLineGraph(id, values, duration, maxVal, lineColor, fillColor, label) {
   const canvas=document.getElementById(id);
   const W=canvas.parentElement.clientWidth, H=canvas.height;
@@ -1033,6 +1130,102 @@ function drawLineGraph(id, values, duration, maxVal, lineColor, fillColor, label
   ctx.strokeStyle=lineColor;ctx.lineWidth=1.5;ctx.stroke();
 }
 
+function drawDebuffChart(id, segs, duration) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  const W = canvas.parentElement.clientWidth, H = canvas.height;
+  canvas.width = W;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // 行定義: {key, label, color, fillColor}
+  const ROWS = [
+    { key:'corrosion', label:'腐食',                     color:'rgba(100,220,100,.8)',  fill:'rgba(100,220,100,.2)' },
+    { key:'crush',     label:'破砕',                     color:'rgba(255,107,53,.9)',   fill:'rgba(255,107,53,.2)' },
+    { key:'vuln_ree',  label:'物理脆弱(リーフォン)',      color:'rgba(255,204,0,.9)',    fill:'rgba(255,204,0,.15)' },
+    { key:'vuln_ald',  label:'物理/アーツ脆弱(アルデリア)',color:'rgba(0,229,255,.9)',   fill:'rgba(0,229,255,.12)' },
+  ];
+
+  const p = { t:8, b:18, l:130, r:8 };
+  const gW = W - p.l - p.r;
+  const rowH = (H - p.t - p.b) / ROWS.length;
+
+  // 背景グリッド（時間軸）
+  ctx.strokeStyle = 'rgba(30,37,53,.8)'; ctx.lineWidth = 1;
+  const ticks = Math.min(6, Math.floor(duration/10));
+  for (let i = 0; i <= ticks; i++) {
+    const t = Math.round(duration * i / ticks);
+    const x = p.l + (t / duration) * gW;
+    ctx.beginPath(); ctx.moveTo(x, p.t); ctx.lineTo(x, H - p.b); ctx.stroke();
+    ctx.fillStyle = 'rgba(74,85,104,.8)'; ctx.font = '9px Share Tech Mono';
+    ctx.textAlign = 'center'; ctx.fillText(t + 's', x, H - 3);
+  }
+
+  // ラベル列の背景
+  ctx.fillStyle = 'rgba(10,12,16,.6)';
+  ctx.fillRect(0, p.t, p.l - 2, H - p.t - p.b);
+
+  ROWS.forEach((row, ri) => {
+    const y0 = p.t + ri * rowH;
+    const yMid = y0 + rowH / 2;
+    const barH = rowH * 0.55;
+    const barY = yMid - barH / 2;
+
+    // 行背景（薄い区切り線）
+    ctx.strokeStyle = 'rgba(30,37,53,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, y0 + rowH); ctx.lineTo(W, y0 + rowH); ctx.stroke();
+
+    // ラベル
+    ctx.fillStyle = 'rgba(74,85,104,.9)';
+    ctx.font = '9px Noto Sans JP'; ctx.textAlign = 'right';
+    ctx.fillText(row.label, p.l - 6, yMid + 3);
+
+    // 該当セグメントを描画
+    const rowSegs = segs.filter(s => {
+      if (row.key === 'corrosion') return s.type === 'corrosion';
+      if (row.key === 'crush')     return s.type === 'crush';
+      if (row.key === 'vuln_ree')  return s.type === 'vuln' && s.cid === 'reephone';
+      if (row.key === 'vuln_ald')  return s.type === 'vuln' && s.cid === 'alderia';
+      return false;
+    });
+
+    rowSegs.forEach(seg => {
+      const x0 = p.l + (seg.start / duration) * gW;
+      const x1 = p.l + (Math.min(seg.end, duration) / duration) * gW;
+      const bw = Math.max(1, x1 - x0);
+
+      // バー塗り
+      ctx.fillStyle = row.fill;
+      ctx.fillRect(x0, barY, bw, barH);
+
+      // バー枠線
+      ctx.strokeStyle = row.color; ctx.lineWidth = 1.5;
+      ctx.strokeRect(x0 + .5, barY + .5, bw - 1, barH - 1);
+
+      // ラベル（幅が十分あれば）
+      if (bw > 30 && seg.value) {
+        ctx.fillStyle = row.color; ctx.font = 'bold 8px Share Tech Mono';
+        ctx.textAlign = 'left';
+        const lbl = seg.value ? `${seg.value}%` : '';
+        ctx.fillText(lbl, x0 + 3, yMid + 3);
+      }
+    });
+  });
+
+  // タイトル
+  ctx.fillStyle = 'rgba(74,85,104,.7)'; ctx.font = '9px Share Tech Mono';
+  ctx.textAlign = 'left'; ctx.fillText('DEBUFF', p.l + 4, p.t + 10);
+
+  // ハイライト線（グローバル変数 highlightTime を参照）
+  if (typeof highlightTime === 'number' && highlightTime >= 0) {
+    const hx = p.l + (highlightTime / duration) * gW;
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(hx, p.t); ctx.lineTo(hx, H - p.b); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
 function drawStageGraph(id, stages, duration) {
   const canvas=document.getElementById(id);
   const W=canvas.parentElement.clientWidth, H=canvas.height;
@@ -1061,6 +1254,13 @@ function drawStageGraph(id, stages, duration) {
     const y0=p.t+gH*(1-stages[i-1]/4), y1=p.t+gH*(1-stages[i]/4);
     ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
     ctx.strokeStyle=STAGE_COLORS[stages[i]];ctx.lineWidth=2;ctx.stroke();
+  }
+  if (typeof highlightTime === 'number' && highlightTime >= 0 && duration > 0) {
+    const hx = p.l + (highlightTime / duration) * gW;
+    ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.5;
+    ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(hx,p.t); ctx.lineTo(hx,H-p.b); ctx.stroke();
+    ctx.setLineDash([]);
   }
 }
 
