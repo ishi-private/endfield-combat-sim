@@ -1,5 +1,6 @@
 ## エンドフィールド戦闘シミュレーター
-URL：https://ishi-private.github.io/endfield-combat-sim/
+URL：https://ishi-private.github.io/endfield-combat-sim/  
+[戦闘ルールとか](./combat_rules_and_data_spec.txt)
 
 ## 参考
 重攻撃の詳細についての参照：OTMじろう(youtube)  
