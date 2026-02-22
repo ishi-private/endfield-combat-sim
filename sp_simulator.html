@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SP収支シミュレーター v0.5</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&display=swap');
+  :root {
+    --bg:#0a0c10; --panel:#111520; --border:#1e2535;
+    --sp:#00e5ff; --ult:#b06aff; --brk:#ff6b35;
+    --c0:#4a5568; --c1:#ffcc00; --c2:#ff9500; --c3:#ff6b35; --c4:#ff3060;
+    --green:#7cff6b; --text:#c8d4e8; --dim:#4a5568;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;min-height:100vh;padding:24px;}
+  body::before{content:'';position:fixed;inset:0;
+    background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+    background-size:40px 40px;pointer-events:none;z-index:0;}
+  .wrap{position:relative;z-index:1;max-width:1260px;margin:0 auto;}
+  h1{font-family:'Share Tech Mono',monospace;font-size:1.1rem;color:var(--sp);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
+  .sub{font-size:.75rem;color:var(--dim);letter-spacing:.1em;margin-bottom:28px;}
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px;}
+  .ptitle{font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--sp);letter-spacing:.15em;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .sec{margin-bottom:18px;}
+  .lbl{font-size:.7rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+  .note{font-size:.62rem;color:var(--dim);margin-top:6px;line-height:1.6;}
+
+  .cgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .cbtn{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.7rem;padding:6px 8px;cursor:pointer;transition:all .15s;text-align:left;}
+  .cbtn:hover{border-color:var(--sp);color:var(--text);}
+  .cbtn.on{background:rgba(0,229,255,.08);border-color:var(--sp);color:var(--sp);}
+  .cbtn .cs{font-size:.6rem;color:var(--dim);display:block;margin-top:1px;}
+  .cbtn.on .cs{color:rgba(0,229,255,.5);}
+
+  .tgrid{display:flex;flex-direction:column;gap:5px;}
+  .tslot{display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:7px 10px;}
+  .tslot.ac{border-color:var(--sp);background:rgba(0,229,255,.05);}
+  .snum{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--dim);}
+  .sname{font-size:.75rem;display:block;}  .sname.hi{color:var(--sp);}
+  .ssub{font-size:.6rem;color:var(--dim);}
+  .badge{font-family:'Share Tech Mono',monospace;font-size:.55rem;padding:1px 5px;border-radius:2px;background:rgba(0,229,255,.15);color:var(--sp);}
+
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  /* アクティブキャラ簡易ステータス */
+  .char-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
+  .cs-cell{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;text-align:center;}
+  .cs-lbl{font-size:.55rem;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+  .cs-val{font-family:'Share Tech Mono',monospace;font-size:.88rem;color:var(--sp);}
+  .cs-val.g{color:var(--green);} .cs-val.o{color:var(--brk);}
+  .nwrap{display:flex;flex-direction:column;gap:4px;}
+  .nlbl{font-size:.62rem;color:var(--dim);}
+  .ninp{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.8rem;padding:5px 8px;width:100%;}
+  .ninp:focus{outline:none;border-color:var(--sp);}
+  .rsel{background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:.75rem;padding:6px 8px;width:100%;cursor:pointer;}
+  .rsel:focus{outline:none;border-color:var(--sp);}
+  .srow{display:flex;align-items:center;gap:10px;}
+  input[type=range]{flex:1;accent-color:var(--sp);height:4px;}
+  .sval{font-family:'Share Tech Mono',monospace;font-size:.8rem;color:var(--sp);min-width:36px;text-align:right;}
+
+  /* クラッシュ段階 */
+  .crash-bar{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 12px;margin-bottom:10px;}
+  .crash-lbl{font-size:.65rem;color:var(--dim);letter-spacing:.08em;text-transform:uppercase;min-width:88px;}
+  .pips{display:flex;gap:4px;}
+  .pip{width:22px;height:22px;border-radius:3px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim);transition:all .3s;}
+  .pip.s1{background:rgba(255,204,0,.2);border-color:var(--c1);color:var(--c1);}
+  .pip.s2{background:rgba(255,149,0,.2);border-color:var(--c2);color:var(--c2);}
+  .pip.s3{background:rgba(255,107,53,.2);border-color:var(--c3);color:var(--c3);}
+  .pip.s4{background:rgba(255,48,96,.25);border-color:var(--c4);color:var(--c4);}
+  .stage-val{font-family:'Share Tech Mono',monospace;font-size:1.1rem;margin-left:4px;}
+  .cs0{color:var(--dim);} .cs1{color:var(--c1);} .cs2{color:var(--c2);} .cs3{color:var(--c3);} .cs4{color:var(--c4);}
+
+  /* 3段ゲージ（SP / 必殺 / ブレイク） */
+  .gauge-block{margin-bottom:14px;}
+  .gauge-row{margin-bottom:8px;}
+  .glr{display:flex;justify-content:space-between;font-size:.65rem;color:var(--dim);margin-bottom:4px;}
+  .glr .gval{font-family:'Share Tech Mono',monospace;}
+  .gt{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+  .gf{height:100%;border-radius:4px;transition:width .4s;}
+  .gf.sp {background:var(--sp); box-shadow:0 0 6px rgba(0,229,255,.5);}
+  .gf.ult{background:var(--ult);box-shadow:0 0 6px rgba(176,106,255,.5);}
+  .gf.brk{background:var(--brk);box-shadow:0 0 6px rgba(255,107,53,.4);}
+
+  /* 必殺技キャラ別ゲージ */
+  .ult-gauges{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+  .ug{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;}
+  .ug-name{font-size:.62rem;color:var(--dim);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ug-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+  .ug-bar{height:100%;border-radius:3px;transition:width .4s;}
+  .ug-val{font-family:'Share Tech Mono',monospace;font-size:.75rem;}
+  .ug-count{font-size:.58rem;color:var(--dim);margin-top:2px;}
+  .ug.ready{border-color:var(--ult);background:rgba(176,106,255,.06);}
+
+  /* メトリクス */
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px;}
+  .mc{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:9px 11px;}
+  .ml{font-size:.58rem;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px;}
+  .mv{font-family:'Share Tech Mono',monospace;font-size:1.2rem;color:var(--sp);}
+  .mv.g{color:var(--green);} .mv.w{color:var(--c1);} .mv.o{color:var(--c3);} .mv.r{color:var(--c4);} .mv.p{color:var(--ult);}
+  .mu{font-size:.58rem;color:var(--dim);margin-left:2px;}
+  .ms{font-size:.58rem;color:var(--dim);margin-top:2px;}
+
+  /* 連携技 */
+  .chain-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;}
+  .cc{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px 10px;}
+  .ccn{font-size:.62rem;color:var(--dim);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ccs{font-size:.68rem;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ccd{font-family:'Share Tech Mono',monospace;font-size:.82rem;color:var(--dim);}
+  .ccd.rdy{color:var(--green);}
+  .ccc{font-size:.58rem;color:var(--dim);margin-top:2px;}
+
+  /* グラフ */
+  .gw{background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px;}
+  canvas{display:block;width:100%;}
+
+  /* ログ */
+  .logscroll{max-height:320px;overflow-y:auto;}
+  .ltable{width:100%;border-collapse:collapse;font-size:.66rem;}
+  .ltable th{font-family:'Share Tech Mono',monospace;font-size:.57rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel);}
+  .ltable td{padding:4px 8px;border-bottom:1px solid rgba(30,37,53,.5);}
+  .ltable tr:hover td{background:rgba(0,229,255,.02);}
+
+  .tag{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.56rem;padding:1px 5px;border-radius:2px;letter-spacing:.05em;}
+  .tag.skill {background:rgba(0,229,255,.15); color:var(--sp);}
+  .tag.chain {background:rgba(255,107,53,.15); color:var(--c3);}
+  .tag.atck  {background:rgba(255,204,0,.10);  color:var(--c1);}
+  .tag.crash {background:rgba(255,48,96,.15);  color:var(--c4);}
+  .tag.ult   {background:rgba(176,106,255,.15);color:var(--ult);}
+
+  .dp{color:var(--green);} .dn{color:#ff5555;} .dz{color:var(--dim);}
+  .mono{font-family:'Share Tech Mono',monospace;}
+  .stg{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:0 4px;border-radius:2px;}
+  .stg.s0{background:rgba(74,85,104,.2);color:var(--dim);}
+  .stg.s1{background:rgba(255,204,0,.15);color:var(--c1);}
+  .stg.s2{background:rgba(255,149,0,.15);color:var(--c2);}
+  .stg.s3{background:rgba(255,107,53,.15);color:var(--c3);}
+  .stg.s4{background:rgba(255,48,96,.2);color:var(--c4);}
+
+
+  /* リンク状態 */
+  .tag.link { background:rgba(255,204,0,.2); color:var(--c1); }
+  .link-row td { background:rgba(255,204,0,.04) !important; }
+  .link-row td:nth-child(3) { color:var(--c1); }
+  /* NSC/CSCバッジ */
+  .nsc{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:0 4px;border-radius:2px;background:rgba(0,229,255,.12);color:var(--sp);margin-left:3px;}
+  .csc{display:inline-block;font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:0 4px;border-radius:2px;background:rgba(176,106,255,.15);color:var(--ult);margin-left:3px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>// SP_SIMULATOR</h1>
+  <div class="sub">ENDFIELD · SP + ULT GAUGE + BREAK VALUE · v0.5</div>
+  <div class="layout">
+    <!-- 左 -->
+    <div>
+      <div class="panel">
+        <div class="ptitle">TEAM CONFIG</div>
+
+        <div class="sec">
+          <div class="lbl">Active Operator（操作キャラ）</div>
+          <div class="cgrid" id="charGrid"></div>
+          <div class="char-stats" id="charStats"></div>
+        </div>
+
+        <div class="sec">
+          <div class="lbl">Team Roster</div>
+          <div class="tgrid" id="teamGrid"></div>
+        </div>
+
+        <div class="sec">
+          <div class="lbl">Skill Rank</div>
+          <select class="rsel" id="rankSel">
+            <option value="1">Rank 1</option><option value="2">Rank 2</option>
+            <option value="3">Rank 3</option><option value="4">Rank 4</option>
+            <option value="5">Rank 5</option><option value="6">Rank 6</option>
+            <option value="7">Rank 7</option><option value="8">Rank 8</option>
+            <option value="9" selected>Rank 9</option>
+            <option value="特化I">特化 I</option>
+            <option value="特化II">特化 II</option>
+            <option value="特化III">特化 III</option>
+          </select>
+        </div>
+
+        <div class="sec">
+          <div class="lbl">Enemy / Combat Settings</div>
+          <div class="row2">
+            <div class="nwrap">
+              <div class="nlbl">転倒/浮遊の間隔（秒）</div>
+              <input type="number" class="ninp" id="inpKD" value="20" min="5" max="120" step="5">
+            </div>
+            <div class="nwrap">
+              <div class="nlbl">初期クラッシュ段階</div>
+              <input type="number" class="ninp" id="inpIS" value="0" min="0" max="4" step="1">
+            </div>
+          </div>
+          <div class="note">
+            SP初期値は200、上限は300です<br>
+            転倒/浮遊: 設定した間隔でクラッシュ段階+1（上限4）<br>
+            破砕（ポグラニチニク戦技）: SP100消費時に自動発動
+          </div>
+        </div>
+
+
+        <div class="sec">
+          <div class="lbl">Battle Strategy（戦略）</div>
+          <select class="rsel" id="strategySel">
+            <option value="default">即時発動（操作キャラの戦技を優先）</option>
+            <option value="crush4">4段待機（クラッシュ4段でポグラニチニク戦技優先）</option>
+            <option value="alderia">アルデリア優先（腐食→脆弱コンボを維持）</option>
+          </select>
+          <div class="note" id="strategyNote">SP100到達時、操作中キャラの戦技を即時発動します。</div>
+        </div>
+
+        <div class="sec">
+          <div class="lbl">Simulation Time</div>
+          <div class="srow">
+            <input type="range" id="timeSlider" min="10" max="120" value="60" step="5">
+            <span class="sval" id="timeVal">60s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右 -->
+    <div>
+      <div class="panel">
+        <div class="ptitle">RESULT</div>
+
+        <!-- クラッシュ段階 -->
+        <div class="crash-bar">
+          <span class="crash-lbl">CRASH STAGE</span>
+          <div class="pips">
+            <div class="pip" id="pip1">1</div>
+            <div class="pip" id="pip2">2</div>
+            <div class="pip" id="pip3">3</div>
+            <div class="pip" id="pip4">4</div>
+          </div>
+          <span class="stage-val cs0" id="stageVal">0</span>
+          <span style="font-size:.62rem;color:var(--dim);margin-left:6px" id="stageNote">未クラッシュ</span>
+        </div>
+
+        <!-- 3ゲージ -->
+        <div class="gauge-block">
+          <div class="gauge-row">
+            <div class="glr"><span>SP POOL</span><span class="gval" id="spLbl">200 / 200</span></div>
+            <div class="gt"><div class="gf sp" id="spFill" style="width:100%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="glr">
+              <span>ULT GAUGE（操作キャラ）</span>
+              <span class="gval" id="ultLbl">0 / —</span>
+            </div>
+            <div class="gt"><div class="gf ult" id="ultFill" style="width:0%"></div></div>
+          </div>
+          <div class="gauge-row">
+            <div class="glr"><span>TOTAL BREAK VALUE</span><span class="gval" id="brkLbl">0</span></div>
+            <div class="gt"><div class="gf brk" id="brkFill" style="width:0%"></div></div>
+          </div>
+        </div>
+
+        <!-- 必殺技ゲージ（4キャラ分） -->
+        <div class="lbl" style="margin-bottom:8px">ULT GAUGE — All Characters</div>
+        <div class="ult-gauges" id="ultGauges"></div>
+
+        <!-- メトリクス -->
+        <div class="metrics" id="metrics"></div>
+
+        <!-- 連携技 -->
+        <div class="lbl" style="margin-bottom:8px">Chain Skill Status</div>
+        <div class="chain-grid" id="chainGrid"></div>
+
+        <!-- グラフ -->
+        <div class="gw"><canvas id="spCanvas"    height="110"></canvas></div>
+        <div class="gw"><canvas id="ultCanvas"   height="80"></canvas></div>
+        <div class="gw"><canvas id="stageCanvas" height="70"></canvas></div>
+
+        <!-- ログ -->
+        <div class="lbl" style="margin-bottom:8px">Event Log</div>
+        <div class="logscroll">
+          <table class="ltable">
+            <thead><tr>
+              <th>Time</th><th>Char</th><th>Event</th>
+              <th>SP Δ</th><th>SP</th><th>ULT</th><th>Crash</th><th>NSC</th><th>BRK+</th>
+            </tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// キャラデータ
+// ═══════════════════════════════════════════════
+const CHARS = {
+  reephone: {
+    id:'reephone', name:'リーフォン', arts:'物理', weapon:'長柄',
+    normal: { sp_regen:20, loop_sec:3.62, break_val:19 },
+    skill:  { sp_cost:100, name:'浄化身', break_val:10,
+              // 3段目に転倒（クラッシュ+1段）。クラッシュ中でない場合は追加で物理脆弱付与
+              crash_effect:{type:'knockdown'} },
+    chain:  { name:'忿怒形', cd_sec:16, trigger:'active_heavy_AND_crashed_or_vuln', break_val:5, grants_link:true },
+    ult:    { name:'不動心', ult_cost:90, cd_sec:15,
+              // 転倒を2回発動 → クラッシュ段階+2（上限4）
+              crash_effect:{type:'knockdown', times:2}, break_val:8 },
+  },
+  pogranicnik: {
+    id:'pogranicnik', name:'ポグラニチニク', arts:'物理', weapon:'片手剣',
+    normal: { sp_regen:20, loop_sec:3.98, break_val:18 },
+    skill:  { sp_cost:100, name:'戦線粉砕', break_val:5,
+              crash_effect:{type:'crush'},
+              sp_regen_by_stage:{0:0,1:5,2:10,3:20,4:30} },
+    chain:  { name:'満月迎撃', cd_sec:18, trigger:'on_crush_consumed',
+              sp_regen_by_consumed:{1:5,2:12,3:25,4:48}, break_val:3 },
+    ult:    { name:'盾兵旗隊、進め', ult_cost:90, cd_sec:10,
+              sp_regen_disrupt:7.5, sp_regen_finisher:30, break_val:15 },
+  },
+  alderia: {
+    id:'alderia', name:'アルデリア', arts:'自然', weapon:'アーツユニット',
+    normal: { sp_regen:18, loop_sec:4.42, break_val:18 },
+    skill:  { sp_cost:100, name:'ドリーラッシュ', break_val:10,
+              consume_corrosion_for_vuln:true },
+    chain:  { name:'イラプション・コラム', cd_sec:18,
+              trigger:'active_heavy_AND_clean_enemy',
+              applies_corrosion:true, break_val:8 },
+    ult:    { name:'もふもふパーティ', ult_cost:90, break_val:12 },
+  },
+  chen_senyuu: {
+    id:'chen_senyuu', name:'チェン・センユー', arts:'物理', weapon:'片手剣',
+    normal: { sp_regen:18, loop_sec:3.42, break_val:16 },
+    skill:  { sp_cost:100, name:'蒼穹返し', break_val:10,
+              crash_effect:{type:'float'} },
+    chain:  { name:'天河昇', cd_sec:16, trigger:'on_crash_stage_gained', break_val:7, applies_float:true },
+    ult:    { name:'凍風斬り', ult_cost:70, break_val:10 },
+  },
+};
+
+// ═══════════════════════════════════════════════
+// クラッシュ関数
+// ═══════════════════════════════════════════════
+function applyKnockdownOrFloat(stage) {
+  if (stage >= 4) return { newStage:4, gained:0 };
+  return { newStage:stage+1, gained:1 };
+}
+function applyCrush(stage) {
+  if (stage === 0) return { newStage:1, consumed:0, had_effect:false };
+  return { newStage:0, consumed:stage, had_effect:true };
+}
+
+// ═══════════════════════════════════════════════
+// シミュレーション
+// ═══════════════════════════════════════════════
+const SP_PASSIVE = 8;
+const SP_MAX     = 300;
+const SP_INIT    = 200;
+const STEP       = 0.1;
+const VULN_DUR   = 12;
+const CORR_DUR   = 7;
+
+// 必殺技ゲージ計算
+// (6.5*NSC + 10*CSC) * (1 + USG*0.01) >= USC
+function calcUltGauge(nsc, csc, usg=0) {
+  return (6.5 * nsc + 10 * csc) * (1 + usg * 0.01);
+}
+
+function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy='default' }) {
+  const active = CHARS[activeId];
+  const team   = teamIds.map(id => CHARS[id]);
+
+  let sp           = SP_INIT;
+  let crashStage   = initStage;
+  let vuln         = false, vulnTimer = 0;
+  let corrosion    = false, corrTimer = 0;
+  let linkState    = false; // リーフォン連携技で獲得、次の戦技/必殺技で消費
+
+  // 連携技CD
+  const chainCd    = {};
+  const chainCount = {}; // キャラ別CSC（連携技使用回数）
+  team.forEach(c => { chainCd[c.id]=0; chainCount[c.id]=0; });
+
+  // NSC = チーム全員の戦技使用回数合計
+  let nsc = 0;
+  // 必殺技使用回数（キャラ別）
+  const ultCount = {};
+  team.forEach(c => { ultCount[c.id]=0; });
+
+  // ブレイク値合計
+  let totalBreakVal = 0;
+
+  // SP収支
+  let totalRegen = SP_INIT; // 初期SPも含む
+  let totalSpent = 0;
+  let stageGainCount = 0;
+  let crushCount     = 0;
+
+  let normalTimer = 0;
+  let kdTimer     = kdInterval;
+
+  const events     = [];
+  const spCurve    = [];
+  const stageCurve = [];
+  // 必殺技ゲージ曲線（操作キャラのみ）
+  const ultCurve   = [];
+
+  function clamp(v) { return Math.max(0, Math.min(SP_MAX, v)); }
+
+  function currentUltGauge() {
+    return calcUltGauge(nsc, chainCount[activeId]);
+  }
+
+  function log(t, cid, type, label, spDelta, spAfter, breakAdd, isLink=false) {
+    events.push({
+      t:+t.toFixed(2), cid, type, label,
+      spDelta:+spDelta.toFixed(1),
+      spAfter:Math.round(spAfter),
+      ultGauge:Math.round(currentUltGauge()),
+      nsc,
+      crashStage,
+      breakAdd,
+      isLink,
+    });
+  }
+
+  function checkGainTrigger(t) {
+    team.forEach(c => {
+      if (chainCd[c.id] > 0) return;
+      if (c.chain.trigger !== 'on_crash_stage_gained') return;
+      chainCd[c.id] = c.chain.cd_sec;
+      chainCount[c.id]++;
+      const bv = c.chain.break_val || 0;
+      totalBreakVal += bv;
+      // チェン・センユー天河昇: 浮遊効果でさらにクラッシュ+1段
+      if (c.chain.applies_float) {
+        const prevF = crashStage;
+        const resF = applyKnockdownOrFloat(crashStage);
+        crashStage = resF.newStage;
+        log(t, c.id, 'chain',
+          `${c.chain.name}（段階獲得トリガー + 浮遊: ${prevF}→${crashStage}）`, 0, sp, bv);
+        // 浮遊でさらに段階が上がった場合、再トリガーはCDにより抑制される
+        if (resF.gained > 0) { stageGainCount++; }
+        // ★注: 連鎖防止のため checkGainTrigger は再帰しない（CDで制御）
+      } else {
+        log(t, c.id, 'chain', `${c.chain.name}（段階獲得 Stage:${crashStage}）`, 0, sp, bv);
+      }
+    });
+  }
+
+  function checkCrushTrigger(t, consumedStage) {
+    team.forEach(c => {
+      if (chainCd[c.id] > 0) return;
+      if (c.chain.trigger !== 'on_crush_consumed') return;
+      const spGain = c.chain.sp_regen_by_consumed[consumedStage] || 0;
+      sp = clamp(sp + spGain);
+      totalRegen += spGain;
+      chainCd[c.id] = c.chain.cd_sec;
+      chainCount[c.id]++;
+      const bv = c.chain.break_val || 0;
+      totalBreakVal += bv;
+      log(t, c.id, 'chain',
+        `${c.chain.name}（破砕${consumedStage}段消費 SP+${spGain}）`,
+        spGain, sp, bv);
+    });
+  }
+
+  // ── メインループ ──
+  for (let t = 0; t <= duration; t = +(t + STEP).toFixed(2)) {
+
+    // パッシブSP
+    sp = clamp(sp + SP_PASSIVE * STEP);
+    totalRegen += SP_PASSIVE * STEP;
+
+    // CD更新
+    team.forEach(c => {
+      if (chainCd[c.id] > 0) chainCd[c.id] = Math.max(0, +(chainCd[c.id]-STEP).toFixed(2));
+    });
+    if (vulnTimer > 0) { vulnTimer = Math.max(0, +(vulnTimer-STEP).toFixed(2)); if (vulnTimer===0) vuln=false; }
+    if (corrTimer > 0) { corrTimer = Math.max(0, +(corrTimer-STEP).toFixed(2)); if (corrTimer===0) corrosion=false; }
+
+    // 転倒/浮遊タイマー（リーフォン必殺技=転倒×2、チェン戦技=浮遊×1）
+    kdTimer = +(kdTimer - STEP).toFixed(2);
+    if (kdTimer <= 0) {
+      kdTimer = kdInterval;
+      const hasReephone = team.some(c => c.id === 'reephone');
+      const kder = team.find(c => c.id === 'reephone') || team.find(c => c.id === 'chen_senyuu') || team[0];
+      const bv = (kder.ult?.break_val) || 0;
+      totalBreakVal += bv;
+
+      if (hasReephone) {
+        // リーフォン必殺技: 転倒を2回発動 → クラッシュ段階+2（上限4）
+        let totalGained = 0;
+        const stageBefore = crashStage;
+        for (let i = 0; i < 2; i++) {
+          const res = applyKnockdownOrFloat(crashStage);
+          if (res.gained > 0) totalGained++;
+          crashStage = res.newStage;
+        }
+        log(t, kder.id, 'crash',
+          `不動心（転倒×2: ${stageBefore}→${crashStage}）`,
+          0, sp, bv);
+        if (totalGained > 0) { stageGainCount += totalGained; checkGainTrigger(t); }
+      } else {
+        // チェン戦技: 浮遊×1
+        const prev = crashStage;
+        const res = applyKnockdownOrFloat(crashStage);
+        crashStage = res.newStage;
+        log(t, kder.id, 'crash',
+          `蒼穹返し（浮遊: ${prev}→${crashStage}）`,
+          0, sp, bv);
+        if (res.gained > 0) { stageGainCount++; checkGainTrigger(t); }
+      }
+    }
+
+    // 通常攻撃ループ
+    normalTimer = +(normalTimer + STEP).toFixed(2);
+    if (normalTimer >= active.normal.loop_sec) {
+      normalTimer = 0;
+      const regen = active.normal.sp_regen;
+      sp = clamp(sp + regen);
+      totalRegen += regen;
+      const bv = active.normal.break_val || 0;
+      totalBreakVal += bv;
+      // 通常攻撃自体はログに記録しない（連携技トリガー時のみ記録）
+
+      // 重攻撃トリガーの連携技
+      if (chainCd[active.id] <= 0) {
+        const ch = active.chain;
+        if (ch.trigger === 'active_heavy_AND_crashed_or_vuln' && (crashStage>0||vuln)) {
+          chainCd[active.id] = ch.cd_sec;
+          chainCount[active.id]++;
+          const cbv = ch.break_val||0; totalBreakVal += cbv;
+          // リーフォン連携技: リンク状態付与
+          if (ch.grants_link) { linkState = true; }
+          log(t, active.id, 'chain',
+            `${ch.name}（重攻撃トリガー Stage:${crashStage}${vuln?' or 脆弱':''}${ch.grants_link?' → リンク獲得':''}）`, 0, sp, cbv);
+        }
+        // アルデリア連携技: クラッシュ中でもアーツ付着中でもない（腐食は条件に含まない）
+        if (ch.trigger === 'active_heavy_AND_clean_enemy' && crashStage===0) {
+          chainCd[active.id] = ch.cd_sec;
+          chainCount[active.id]++;
+          corrosion=true; corrTimer=CORR_DUR;
+          const cbv = ch.break_val||0; totalBreakVal += cbv;
+          log(t, active.id, 'chain', `${ch.name}（腐食付与 7s）`, 0, sp, cbv);
+        }
+      }
+    }
+
+    // SP 100 → 戦技発動（戦略に基づいてキャラを選択）
+    // alderia戦略: 腐食も脆弱もない状態ではSPを温存（連携技→戦技コンボを優先）
+    //              SP200（上限）に達したら仕方なく発動
+    // ══ アルデリア優先戦略: 先読みロジック ══
+    // 次の重攻撃タイミングまでの時間 (timeToNextHeavy)
+    const timeToNextHeavy = +(active.normal.loop_sec - normalTimer).toFixed(2);
+
+    // ── t2時点のクラッシュ段階を予測 ──
+    // t1→t2間に発生しうるイベントを考慮してクラッシュ段階を予測する
+    let predictedCrash = crashStage;
+    // (1) 転倒/浮遊タイマーが t2 までに発火するか
+    //     kdTimer は毎ステップ減算されており、timeToNextHeavy 以内に0以下になるなら発火
+    if (kdTimer <= timeToNextHeavy) {
+      // 転倒/浮遊: +1段（上限4）
+      if (predictedCrash < 4) predictedCrash++;
+      // リーフォンがチームにいる場合は転倒×2なのでさらに+1
+      if (team.some(c => c.id === 'reephone') && predictedCrash < 4) predictedCrash++;
+    }
+    // (2) t1時点でSP>=100かつ戦技が発動される場合のクラッシュ変化
+    //     ※ この判定自体がsp>=100の中にあるので、ここでは「もし発動するなら」の予測として
+    //       現在発動されない（alderiaHold）前提で考える → クラッシュ変化なし
+    //       ただし破砕（ポグ戦技）の場合、クラッシュ段階が消費されてリセットされうる
+    //       → 現在操作キャラがポグかつSP>=100なら破砕発動を予測
+    if (active.id === 'pogranicnik' && sp >= 100 && strategy !== 'alderia') {
+      // 破砕: stage>0なら0にリセット、stage=0なら1に増加
+      predictedCrash = predictedCrash > 0 ? 0 : 1;
+    }
+
+    // ── t2時点の腐食状態を予測 ──
+    // 腐食タイマーがt2までに切れるかどうか
+    const corrWillExpireByT2 = corrosion && corrTimer <= timeToNextHeavy;
+    const predictedCorrosion  = corrosion && !corrWillExpireByT2;
+
+    // ── t2でアルデリア連携技が発動可能か ──
+    // 条件: クラッシュ=0 かつ 腐食なし
+    const alderiaChainPossibleAtT2 = predictedCrash === 0 && !predictedCorrosion;
+
+    // ── 戦技を温存すべきか ──
+    //   アルデリア優先戦略 かつ t2で連携技が発動可能 かつ 現在腐食中でない
+    //   （腐食中は温存せず即発動して脆弱付与を優先）
+    const alderiaHold = strategy === 'alderia' && alderiaChainPossibleAtT2 && !corrosion;
+    if (sp >= 100 && (!alderiaHold || sp >= SP_MAX)) {
+      // 戦略によって発動キャラを決定
+      let skillUser = active; // デフォルト: 操作キャラ
+      if (strategy === 'crush4') {
+        const pog = team.find(c => c.id === 'pogranicnik');
+        // クラッシュ4段かつポグラニチニクがチームにいれば優先
+        if (crashStage >= 4 && pog) {
+          skillUser = pog;
+        }
+      } else if (strategy === 'alderia') {
+        const ald = team.find(c => c.id === 'alderia');
+        if (ald) {
+          if (corrosion) {
+            // 腐食中 → アルデリア戦技を代理発動（腐食消費→脆弱付与）
+            skillUser = ald;
+          }
+          // 脆弱中(腐食なし): 操作キャラの戦技を発動（skillUser=active のまま）
+          // 腐食も脆弱もない & SP<200: ここに到達しない（alderiaHoldで弾いている）
+          // 腐食も脆弱もない & SP>=200: 操作キャラの戦技を発動（溢れ防止）
+        }
+      }
+
+      sp = clamp(sp - 100);
+      totalSpent += 100;
+      nsc++; // チーム全体NSC
+      const sk  = skillUser.skill;
+      const bv  = sk.break_val || 0;
+      totalBreakVal += bv;
+
+      // リンク状態確認（戦技発動前）
+      const hadLink = linkState;
+      if (linkState) { linkState = false; } // 消費
+
+      // 発動キャラが操作キャラ以外の場合ログに表示
+      const nonActive = skillUser.id !== active.id
+        ? `【${skillUser.name}が代理発動】` : '';
+      // alderia戦略でSP200溢れ防止発動の場合
+      const overflow = (strategy==='alderia' && !corrosion && alderiaChainPossibleAtT2 && sp >= SP_MAX) ? '【SP上限・溢れ防止で発動】' : '';
+
+      // 破砕（ポグラニチニク）
+      if (sk.crash_effect?.type === 'crush') {
+        const prev = crashStage;
+        const res  = applyCrush(crashStage);
+        crashStage = res.newStage;
+        let extra  = 0;
+        if (res.had_effect) {
+          extra = sk.sp_regen_by_stage[prev] || 0;
+          sp = clamp(sp + extra); totalRegen += extra;
+          crushCount++;
+          log(t, skillUser.id, 'skill',
+            `${sk.name}${nonActive}${overflow}（破砕 ${prev}段消費 SP+${extra}${hadLink?' ★リンク':''}）`,
+            -100+extra, sp, bv, hadLink);
+          checkCrushTrigger(t, prev);
+        } else {
+          stageGainCount++;
+          log(t, skillUser.id, 'skill',
+            `${sk.name}${nonActive}${overflow}（破砕 0→1段 効果なし${hadLink?' ★リンク':''}）`,
+            -100, sp, bv, hadLink);
+          checkGainTrigger(t);
+        }
+      }
+      // 転倒（リーフォン戦技）
+      else if (sk.crash_effect?.type === 'knockdown') {
+        const prev = crashStage;
+        const res  = applyKnockdownOrFloat(crashStage);
+        crashStage = res.newStage;
+        if (prev === 0) { vuln=true; vulnTimer=VULN_DUR; }
+        log(t, skillUser.id, 'skill',
+          `${sk.name}${nonActive}${overflow}（転倒 Stage:${prev}→${crashStage}${prev===0?' + 物理脆弱':''}${hadLink?' ★リンク':''}）`,
+          -100, sp, bv, hadLink);
+        if (res.gained>0) { stageGainCount++; checkGainTrigger(t); }
+      }
+      // 浮遊（チェン・センユー戦技）
+      else if (sk.crash_effect?.type === 'float') {
+        const prev = crashStage;
+        const res  = applyKnockdownOrFloat(crashStage);
+        crashStage = res.newStage;
+        log(t, skillUser.id, 'skill',
+          `${sk.name}${nonActive}${overflow}（浮遊 Stage:${prev}→${crashStage}${hadLink?' ★リンク':''}）`,
+          -100, sp, bv, hadLink);
+        if (res.gained>0) { stageGainCount++; checkGainTrigger(t); }
+      }
+      // その他（アルデリア戦技など）
+      else {
+        let skillNote = '';
+        if (sk.consume_corrosion_for_vuln && corrosion) {
+          // 腐食消費 → 物理/アーツ脆弱付与（30秒）
+          corrosion=false; corrTimer=0; vuln=true; vulnTimer=VULN_DUR;
+          skillNote = '（腐食消費 → 物理/アーツ脆弱付与 30s）';
+        } else if (sk.consume_corrosion_for_vuln && !corrosion && vuln) {
+          skillNote = '（脆弱継続中）';
+        } else if (sk.consume_corrosion_for_vuln) {
+          skillNote = '（腐食なし・脆弱なし）';
+        }
+        log(t, skillUser.id, 'skill',
+          `${sk.name}${nonActive}${overflow}${skillNote}${hadLink?' ★リンク':''}`,
+          -100, sp, bv, hadLink);
+      }
+
+      // 必殺技解放チェック（全キャラ）
+      team.forEach(c => {
+        const csc   = chainCount[c.id];
+        const gauge = calcUltGauge(nsc - (c._nscBaseline||0), csc);
+        if (gauge >= c.ult.ult_cost) {
+          ultCount[c.id]++;
+          const bvU = c.ult.ult_cost||0; // ← break_val
+          const bvUlt = c.ult.break_val||0;
+          totalBreakVal += bvUlt;
+          chainCount[c.id] = 0;
+          c._nscBaseline = nsc;
+          // 必殺技もリンク消費（リーフォン必殺技のリンクボーナス）
+          const hadLinkUlt = linkState;
+          if (linkState) { linkState = false; }
+          log(t, c.id, 'ult',
+            `${c.ult.name}（必殺技発動！ ${ultCount[c.id]}回目${hadLinkUlt?' ★リンクボーナス':''}）`,
+            0, sp, bvUlt, hadLinkUlt);
+        }
+      });
+    }
+
+    // 曲線記録（0.5秒刻み）
+    if (Math.abs(t % 0.5) < STEP/2) {
+      spCurve.push(sp);
+      stageCurve.push(crashStage);
+      // 操作キャラの必殺技ゲージ（USC比の%）
+      const gauge = calcUltGauge(
+        nsc - (active._nscBaseline||0),
+        chainCount[active.id]
+      );
+      ultCurve.push(Math.min(gauge, active.ult.ult_cost));
+    }
+  }
+
+  // キャラ別最終必殺技ゲージ
+  const finalUltGauges = team.map(c => {
+    const gauge = calcUltGauge(
+      nsc - (c._nscBaseline||0),
+      chainCount[c.id]
+    );
+    return {
+      id: c.id, name: c.name,
+      skillName: c.ult.name,
+      gauge: Math.round(Math.min(gauge, c.ult.ult_cost)),
+      cost: c.ult.ult_cost,
+      pct: Math.min(100, gauge / c.ult.ult_cost * 100),
+      used: ultCount[c.id],
+      ready: gauge >= c.ult.ult_cost,
+    };
+  });
+
+  return {
+    events, spCurve, stageCurve, ultCurve,
+    finalSp: sp, finalStage: crashStage,
+    totalRegen, totalSpent, netSp: totalRegen - totalSpent,
+    totalBreakVal,
+    stageGainCount, crushCount, nsc,
+    chainSummary: team.map(c => ({
+      id:c.id, name:c.name, skillName:c.chain.name,
+      count:chainCount[c.id], cdLeft:+chainCd[c.id].toFixed(1),
+    })),
+    finalUltGauges,
+    ultCountTotal: Object.values(ultCount).reduce((s,v)=>s+v, 0),
+    activeUltCost: active.ult.ult_cost,
+    duration,
+  };
+}
+
+// ═══════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════
+let activeId   = 'reephone';
+let teamIds    = ['reephone','pogranicnik','alderia','chen_senyuu'];
+let duration   = 60;
+let kdInterval = 20;
+let initStage  = 0;
+let strategy   = 'default';
+
+function init() {
+  const cg = document.getElementById('charGrid');
+  Object.values(CHARS).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'cbtn'+(c.id===activeId?' on':'');
+    btn.dataset.id = c.id;
+    btn.innerHTML = `${c.name}<span class="cs">${c.arts}・${c.weapon}</span>`;
+    btn.onclick = () => {
+      document.querySelectorAll('.cbtn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on'); activeId=c.id; renderTeam(); renderCharStats(); run();
+    };
+    cg.appendChild(btn);
+  });
+  renderTeam();
+  renderCharStats();
+  document.getElementById('timeSlider').oninput = e => {
+    duration=+e.target.value;
+    document.getElementById('timeVal').textContent=duration+'s'; run();
+  };
+  document.getElementById('inpKD').oninput = e => { kdInterval=+e.target.value||20; run(); };
+  document.getElementById('inpIS').oninput = e => { initStage=Math.min(4,Math.max(0,+e.target.value||0)); run(); };
+  document.getElementById('strategySel').onchange = e => {
+    strategy = e.target.value;
+    const notes = {
+      default: 'SP100到達時、操作中キャラの戦技を即時発動します。',
+      crush4:  'クラッシュが4段のとき、ポグラニチニクの戦技を優先発動します（非操作中でも可）。',
+      alderia: '腐食中にSP100到達したらアルデリアの戦技を優先発動（腐食→脆弱コンボ）。腐食/脆弱が切れた後の重攻撃で連携技が自動発動し、コンボを再開します。',
+    };
+    document.getElementById('strategyNote').textContent = notes[strategy] || '';
+    run();
+  };
+  run();
+}
+
+function renderCharStats() {
+  const c = CHARS[activeId];
+  const n = c.normal;
+  // SP/sec = sp_regen / loop_sec、BRK/sec = break_val / loop_sec
+  const spSec  = (n.sp_regen  / n.loop_sec).toFixed(2);
+  const brkSec = (n.break_val / n.loop_sec).toFixed(2);
+  document.getElementById('charStats').innerHTML = `
+    <div class="cs-cell">
+      <div class="cs-lbl">Loop Time</div>
+      <div class="cs-val">${n.loop_sec}<span style="font-size:.6rem;color:var(--dim)">s</span></div>
+    </div>
+    <div class="cs-cell">
+      <div class="cs-lbl">SP / Loop</div>
+      <div class="cs-val g">+${n.sp_regen}</div>
+    </div>
+    <div class="cs-cell">
+      <div class="cs-lbl">BRK / Loop</div>
+      <div class="cs-val o">${n.break_val}</div>
+    </div>
+    <div class="cs-cell">
+      <div class="cs-lbl">SP / sec</div>
+      <div class="cs-val g">${spSec}</div>
+    </div>
+    <div class="cs-cell">
+      <div class="cs-lbl">BRK / sec</div>
+      <div class="cs-val o">${brkSec}</div>
+    </div>
+    <div class="cs-cell">
+      <div class="cs-lbl">Heavy BRK</div>
+      <div class="cs-val o">${n.break_val}</div>
+    </div>`;
+}
+
+function renderTeam() {
+  document.getElementById('teamGrid').innerHTML = teamIds.map((id,i) => {
+    const c=CHARS[id]; const ac=id===activeId;
+    return `<div class="tslot ${ac?'ac':''}">
+      <span class="snum">${i+1}</span>
+      <span><span class="sname ${ac?'hi':''}">${c.name}</span><span class="ssub">${c.arts}・${c.weapon}</span></span>
+      ${ac?'<span class="badge">ACTIVE</span>':''}
+    </div>`;
+  }).join('');
+}
+
+function run() {
+  // キャラのbaseline状態をリセット
+  Object.values(CHARS).forEach(c => { c._nscBaseline=0; });
+  const r = simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy });
+  render(r);
+}
+
+const STAGE_COLORS = ['var(--dim)','var(--c1)','var(--c2)','var(--c3)','var(--c4)'];
+const STAGE_NOTES  = ['未クラッシュ','クラッシュ 1段','クラッシュ 2段','クラッシュ 3段','クラッシュ 4段（最大）'];
+
+function render(r) {
+  // クラッシュ段階
+  for(let i=1;i<=4;i++) {
+    const p=document.getElementById('pip'+i);
+    p.className='pip'+(i<=r.finalStage?` s${i}`:'');
+  }
+  const sv=document.getElementById('stageVal');
+  sv.textContent=r.finalStage; sv.className=`stage-val cs${r.finalStage}`;
+  document.getElementById('stageNote').textContent=STAGE_NOTES[r.finalStage];
+
+  // 3ゲージ
+  document.getElementById('spFill').style.width=Math.min(100,r.finalSp/300*100)+'%';
+  document.getElementById('spLbl').textContent=`${Math.round(r.finalSp)} / 300`;
+  const activeUltData = r.finalUltGauges.find(u=>u.id===activeId);
+  document.getElementById('ultFill').style.width=activeUltData.pct+'%';
+  document.getElementById('ultLbl').textContent=`${activeUltData.gauge} / ${activeUltData.cost}`;
+  // ブレイク値は参照ライン用の最大値を設定
+  const brkMax = Math.max(r.totalBreakVal, 100);
+  document.getElementById('brkFill').style.width=Math.min(100,r.totalBreakVal/brkMax*100)+'%';
+  document.getElementById('brkLbl').textContent=r.totalBreakVal;
+
+  // 4キャラ必殺技ゲージ
+  document.getElementById('ultGauges').innerHTML = r.finalUltGauges.map(u => `
+    <div class="ug ${u.ready?'ready':''}">
+      <div class="ug-name">${u.name}</div>
+      <div class="ug-bar-wrap"><div class="ug-bar" style="width:${u.pct}%;background:${u.ready?'var(--ult)':'rgba(176,106,255,.5)'}"></div></div>
+      <div class="ug-val" style="color:${u.ready?'var(--ult)':'var(--dim)'}">${u.gauge}<span style="font-size:.6rem;color:var(--dim)"> / ${u.cost}</span></div>
+      <div class="ug-count">${u.skillName}　発動${u.used}回</div>
+    </div>`).join('');
+
+  // メトリクス
+  document.getElementById('metrics').innerHTML = [
+    { l:'Total SP Regen',  v:Math.round(r.totalRegen), u:'SP', c:'g' },
+    { l:'Total SP Spent',  v:Math.round(r.totalSpent), u:'SP', c:'w' },
+    { l:'Net SP',          v:Math.round(r.netSp),      u:'SP', c:r.netSp>=0?'g':'w' },
+    { l:'Avg SP/sec',      v:(r.totalRegen/r.duration).toFixed(1), u:'/s', c:'' },
+    { l:'Total Break Val', v:r.totalBreakVal, u:'', c:'o' },
+    { l:'NSC (total)',     v:r.nsc,           u:'回', c:'p' },
+    { l:'Ult Fires',       v:r.ultCountTotal, u:'回', c:r.ultCountTotal>0?'p':'' },
+    { l:'Crash Gains',     v:r.stageGainCount,u:'回', c:'o' },
+  ].map(m=>`<div class="mc"><div class="ml">${m.l}</div><div class="mv ${m.c}">${m.v}<span class="mu">${m.u}</span></div></div>`).join('');
+
+  // 連携技
+  document.getElementById('chainGrid').innerHTML = r.chainSummary.map(c=>
+    `<div class="cc">
+      <div class="ccn">${c.name}</div>
+      <div class="ccs">${c.skillName}</div>
+      <div class="ccd ${c.cdLeft===0?'rdy':''}">${c.cdLeft>0?`CD ${c.cdLeft}s`:'READY'}</div>
+      <div class="ccc">CSC: ${c.count}回</div>
+    </div>`).join('');
+
+  // グラフ
+  drawLineGraph('spCanvas',    r.spCurve,    r.duration, 300, 'rgba(0,229,255,.6)',   'rgba(0,229,255,.07)',    'SP');
+  drawLineGraph('ultCanvas',   r.ultCurve,   r.duration, r.activeUltCost,
+                                                               'rgba(176,106,255,.6)', 'rgba(176,106,255,.07)', 'ULT');
+  drawStageGraph('stageCanvas', r.stageCurve, r.duration);
+
+  // ログ
+  const rows = r.events; // 通常攻撃も含め全イベントを表示
+  const TYPE_LABEL = {skill:'SKILL',chain:'CHAIN',atck:'ATCK',crash:'転倒/浮遊',ult:'ULT'};
+  document.getElementById('logBody').innerHTML = rows.map(e => {
+    const dStr = e.spDelta>0?`<span class="dp">+${e.spDelta}</span>`
+               : e.spDelta<0?`<span class="dn">${e.spDelta}</span>`
+               :`<span class="dz">—</span>`;
+    const typeLbl = TYPE_LABEL[e.type] || e.type.toUpperCase();
+    // リンク状態はタグを2つ表示（LINKバッジ + 本来のタイプ）
+    const tagHtml = e.isLink
+      ? `<span class="tag link">LINK</span> <span class="tag ${e.type}">${typeLbl}</span>`
+      : `<span class="tag ${e.type}">${typeLbl}</span>`;
+    const labelColor = e.isLink ? 'var(--c1)' : 'var(--dim)';
+    const cname = CHARS[e.cid] ? CHARS[e.cid].name : e.cid;
+    const rowCls = e.isLink ? 'link-row' : '';
+    return `<tr class="${rowCls}">
+      <td class="mono" style="color:var(--dim)">${e.t.toFixed(1)}s</td>
+      <td style="font-size:.64rem">${cname}</td>
+      <td>${tagHtml} <span style="color:${labelColor}">${e.label}</span></td>
+      <td>${dStr}</td>
+      <td class="mono">${e.spAfter}</td>
+      <td class="mono" style="color:var(--ult)">${e.ultGauge}</td>
+      <td><span class="stg s${e.crashStage}">${e.crashStage}</span></td>
+      <td class="mono" style="color:var(--dim)">N${e.nsc}</td>
+      <td class="mono" style="color:var(--c3)">${e.breakAdd>0?'+'+e.breakAdd:''}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── グラフ描画 ───
+function drawLineGraph(id, values, duration, maxVal, lineColor, fillColor, label) {
+  const canvas=document.getElementById(id);
+  const W=canvas.parentElement.clientWidth, H=canvas.height;
+  canvas.width=W;
+  const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,W,H);
+  if(!values||values.length<2) return;
+  const p={t:8,b:18,l:34,r:8};
+  const gW=W-p.l-p.r, gH=H-p.t-p.b;
+  // グリッド
+  ctx.strokeStyle='rgba(30,37,53,.8)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=p.t+gH*(1-i/4);
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();
+    ctx.fillStyle='rgba(74,85,104,.8)';ctx.font='9px Share Tech Mono';ctx.textAlign='right';
+    ctx.fillText(Math.round(maxVal*i/4),p.l-4,y+3);
+  }
+  const ticks=Math.min(6,Math.floor(duration/10));
+  for(let i=0;i<=ticks;i++){
+    const t=Math.round(duration*i/ticks);
+    ctx.fillStyle='rgba(74,85,104,.8)';ctx.textAlign='center';
+    ctx.fillText(t+'s',p.l+(t/duration)*gW,H-3);
+  }
+  ctx.fillStyle=lineColor;ctx.textAlign='left';ctx.font='9px Share Tech Mono';
+  ctx.fillText(label,p.l+4,p.t+11);
+  // fill
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const x=p.l+(i/(values.length-1))*gW, y=p.t+gH*(1-Math.min(v,maxVal)/maxVal);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.lineTo(p.l+gW,p.t+gH);ctx.lineTo(p.l,p.t+gH);
+  ctx.closePath();ctx.fillStyle=fillColor;ctx.fill();
+  // line
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const x=p.l+(i/(values.length-1))*gW, y=p.t+gH*(1-Math.min(v,maxVal)/maxVal);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.strokeStyle=lineColor;ctx.lineWidth=1.5;ctx.stroke();
+}
+
+function drawStageGraph(id, stages, duration) {
+  const canvas=document.getElementById(id);
+  const W=canvas.parentElement.clientWidth, H=canvas.height;
+  canvas.width=W;
+  const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,W,H);
+  if(!stages||stages.length<2) return;
+  const p={t:8,b:18,l:18,r:8};
+  const gW=W-p.l-p.r, gH=H-p.t-p.b;
+  ctx.strokeStyle='rgba(30,37,53,.8)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=p.t+gH*(1-i/4);
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();
+    ctx.fillStyle=STAGE_COLORS[i];ctx.font='9px Share Tech Mono';ctx.textAlign='right';
+    ctx.fillText(i,p.l-4,y+3);
+  }
+  const ticks=Math.min(6,Math.floor(duration/10));
+  for(let i=0;i<=ticks;i++){
+    const t=Math.round(duration*i/ticks);
+    ctx.fillStyle='rgba(74,85,104,.8)';ctx.textAlign='center';
+    ctx.fillText(t+'s',p.l+(t/duration)*gW,H-3);
+  }
+  ctx.fillStyle='rgba(255,107,53,.5)';ctx.textAlign='left';ctx.font='9px Share Tech Mono';
+  ctx.fillText('STAGE',p.l+2,p.t+11);
+  for(let i=1;i<stages.length;i++){
+    const x0=p.l+((i-1)/(stages.length-1))*gW, x1=p.l+(i/(stages.length-1))*gW;
+    const y0=p.t+gH*(1-stages[i-1]/4), y1=p.t+gH*(1-stages[i]/4);
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);
+    ctx.strokeStyle=STAGE_COLORS[stages[i]];ctx.lineWidth=2;ctx.stroke();
+  }
+}
+
+window.addEventListener('load',init);
+window.addEventListener('resize',run);
+</script>
+</body>
+</html>

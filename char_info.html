@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>キャラクター情報 — Endfield</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+JP:wght@300;400;700&display=swap');
+  :root{
+    --bg:#0a0c10;--panel:#111520;--panel2:#0d1018;--border:#1e2535;
+    --sp:#00e5ff;--ult:#b06aff;--brk:#ff6b35;--green:#7cff6b;
+    --phys:#60aaff;--nature:#7cff6b;--text:#c8d4e8;--dim:#4a5568;
+    --c1:#ffcc00;--c2:#ff9500;--c3:#ff6b35;--c4:#ff3060;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;min-height:100vh;padding:24px;}
+  body::before{content:'';position:fixed;inset:0;
+    background-image:linear-gradient(rgba(0,229,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.025) 1px,transparent 1px);
+    background-size:40px 40px;pointer-events:none;z-index:0;}
+  .wrap{position:relative;z-index:1;max-width:1060px;margin:0 auto;}
+  h1{font-family:'Share Tech Mono',monospace;font-size:1.05rem;color:var(--sp);letter-spacing:.2em;text-transform:uppercase;margin-bottom:4px;}
+  .sub{font-size:.72rem;color:var(--dim);letter-spacing:.1em;margin-bottom:24px;}
+  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab{background:var(--panel2);border:1px solid var(--border);border-radius:5px;color:var(--dim);font-family:'Share Tech Mono',monospace;font-size:.75rem;padding:8px 18px;cursor:pointer;transition:all .15s;}
+  .tab:hover{border-color:var(--sp);color:var(--text);}
+  .tab.on{background:rgba(0,229,255,.08);border-color:var(--sp);color:var(--sp);}
+  .page{display:none;}.page.on{display:block;}
+  .char-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px 20px;}
+  .char-icon{width:52px;height:52px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Share Tech Mono',monospace;font-size:1.4rem;font-weight:700;flex-shrink:0;}
+  .char-icon.phys{background:rgba(96,170,255,.15);color:var(--phys);border:1px solid rgba(96,170,255,.3);}
+  .char-icon.nature{background:rgba(124,255,107,.12);color:var(--nature);border:1px solid rgba(124,255,107,.25);}
+  .char-name{font-size:1.25rem;font-weight:700;margin-bottom:5px;}
+  .char-meta{display:flex;gap:8px;flex-wrap:wrap;}
+  .chip{font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:2px 8px;border-radius:3px;}
+  .chip.phys{background:rgba(96,170,255,.12);color:var(--phys);}
+  .chip.nature{background:rgba(124,255,107,.1);color:var(--nature);}
+  .chip.gray{background:rgba(74,85,104,.2);color:var(--dim);}
+  .chip.sp{background:rgba(0,229,255,.1);color:var(--sp);}
+  .chip.ult{background:rgba(176,106,255,.12);color:var(--ult);}
+  .chip.brk{background:rgba(255,107,53,.12);color:var(--brk);}
+  .skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .skill-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px;}
+  .skill-card.full{grid-column:1/-1;}
+  @media(max-width:680px){.skill-grid{grid-template-columns:1fr;}.skill-card.full{grid-column:1;}}
+  .sk-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .sk-badge{font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:2px 7px;border-radius:3px;text-transform:uppercase;}
+  .sk-badge.normal{background:rgba(74,85,104,.25);color:var(--dim);}
+  .sk-badge.skill{background:rgba(0,229,255,.12);color:var(--sp);}
+  .sk-badge.chain{background:rgba(255,107,53,.12);color:var(--brk);}
+  .sk-badge.ult{background:rgba(176,106,255,.15);color:var(--ult);}
+  .sk-name{font-size:.95rem;font-weight:700;}
+  .sk-props{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .sk-desc{font-size:.72rem;color:#8a9ab8;line-height:1.75;margin-bottom:12px;}
+  .crash-effects{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .ce{display:inline-flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:.62rem;padding:4px 10px;border-radius:4px;}
+  .ce.kd{background:rgba(255,204,0,.12);color:var(--c1);border:1px solid rgba(255,204,0,.2);}
+  .ce.flt{background:rgba(255,149,0,.12);color:var(--c2);border:1px solid rgba(255,149,0,.2);}
+  .ce.csh{background:rgba(255,107,53,.12);color:var(--c3);border:1px solid rgba(255,107,53,.2);}
+  .ce.vuln{background:rgba(0,229,255,.08);color:var(--sp);border:1px solid rgba(0,229,255,.15);}
+  .ce.corr{background:rgba(124,255,107,.08);color:var(--nature);border:1px solid rgba(124,255,107,.15);}
+  .note{background:rgba(255,204,0,.05);border:1px solid rgba(255,204,0,.12);border-radius:4px;padding:8px 12px;font-size:.7rem;color:#c8a020;line-height:1.7;margin-bottom:12px;}
+  .slbl{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;margin-top:10px;}
+  .timing-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .tc{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:7px 12px;min-width:90px;}
+  .tc-lbl{font-size:.58rem;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;}
+  .tc-val{font-family:'Share Tech Mono',monospace;font-size:.95rem;color:var(--sp);}
+  .tc-unit{font-size:.58rem;color:var(--dim);margin-left:1px;}
+  .sp-table{width:100%;border-collapse:collapse;font-size:.68rem;margin-bottom:12px;}
+  .sp-table th,.sp-table td{padding:5px 10px;border:1px solid var(--border);}
+  .sp-table th{background:var(--panel2);font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--dim);text-align:center;}
+  .sp-table td{font-family:'Share Tech Mono',monospace;text-align:center;}
+  .sp-table td.s0{color:var(--dim);}.sp-table td.s1{color:var(--c1);}.sp-table td.s2{color:var(--c2);}.sp-table td.s3{color:var(--c3);}.sp-table td.s4{color:var(--c4);}
+  .rank-wrap{overflow-x:auto;}
+  .rt{width:100%;border-collapse:collapse;font-size:.67rem;white-space:nowrap;}
+  .rt th{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--dim);letter-spacing:.07em;text-transform:uppercase;text-align:right;padding:5px 8px;border-bottom:1px solid var(--border);}
+  .rt th:first-child{text-align:left;}
+  .rt td{padding:4px 8px;border-bottom:1px solid rgba(30,37,53,.4);text-align:right;font-family:'Share Tech Mono',monospace;}
+  .rt td:first-child{text-align:left;color:var(--dim);}
+  .rt tr.hi td{background:rgba(0,229,255,.04);color:var(--sp);}
+  .rt tr.hi td:first-child{color:var(--sp);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>// CHAR_INFO</h1>
+  <div class="sub">ENDFIELD · CHARACTER DATABASE · v1.0</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="pages"></div>
+</div>
+<script>
+const HI = new Set(['9','特化I','特化II','特化III']);
+
+function chip(t,c){return`<span class="chip ${c}">${t}</span>`;}
+function ce(type,label){return`<span class="ce ${type}">${label}</span>`;}
+function slbl(t){return`<div class="slbl">${t}</div>`;}
+function note(t){return`<div class="note">${t}</div>`;}
+
+function timingBlock(na){
+  return`<div class="timing-row">
+    <div class="tc"><div class="tc-lbl">重攻撃SP</div><div class="tc-val">+${na.spPerHit}<span class="tc-unit">SP</span></div></div>
+    <div class="tc"><div class="tc-lbl">重攻撃BRK</div><div class="tc-val">${na.brkPerHit}</div></div>
+    <div class="tc"><div class="tc-lbl">重攻撃時間</div><div class="tc-val">${na.heavySec}<span class="tc-unit">s</span></div></div>
+    <div class="tc"><div class="tc-lbl">ループ時間</div><div class="tc-val">${na.loopSec}<span class="tc-unit">s</span></div></div>
+    <div class="tc"><div class="tc-lbl">SP/sec</div><div class="tc-val">${na.spPerSec}</div></div>
+    <div class="tc"><div class="tc-lbl">BRK/sec</div><div class="tc-val">${na.brkPerSec}</div></div>
+  </div>`;}
+
+function rankTable(cols,ranks,fn){
+  const hdrs=cols.map(c=>`<th>${c}</th>`).join('');
+  const rows=ranks.map(r=>{
+    const hi=HI.has(String(r.r));
+    const cells=fn(r).map(v=>`<td>${v??'—'}</td>`).join('');
+    return`<tr class="${hi?'hi':''}" ><td>${r.r}</td>${cells}</tr>`;
+  }).join('');
+  return`<div class="rank-wrap"><table class="rt"><thead><tr><th>Rank</th>${hdrs}</tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function naTable(na){
+  const n=na.ranks[0].h.length;
+  const cols=['1段','2段','3段',...(n>3?['4段']:[]),...(n>4?['5段']:[]),'終撃','落下'];
+  return rankTable(cols,na.ranks,r=>[r.h[0],r.h[1],r.h[2],...(n>3?[r.h[3]]:[]),...(n>4?[r.h[4]]:[]),r.fin,r.plunge]);
+}
+
+function spStageTable(rows){
+  if(!rows)return'';
+  return slbl('破砕SP回収量（消費クラッシュ段階別）')+
+    `<table class="sp-table"><thead><tr><th>ランク帯</th><th class="s0">0段（効果なし）</th><th class="s1">1段消費</th><th class="s2">2段消費</th><th class="s3">3段消費</th><th class="s4">4段消費</th></tr></thead><tbody>
+    ${rows.map(row=>`<tr><td style="text-align:left;color:var(--dim)">${row.label}</td>${row.vals.map((v,i)=>`<td class="s${i}">${v===0?'—':'+'+v+' SP'}</td>`).join('')}</tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ══════════════════════════════════════════════
+// キャラページ定義
+// ══════════════════════════════════════════════
+function buildReephone(){
+  return`
+  <div class="char-header">
+    <div class="char-icon phys">璃</div>
+    <div><div class="char-name">リーフォン</div>
+    <div class="char-meta">${chip('物理','phys')}${chip('長柄','gray')}${chip('USC 90','ult')}${chip('重攻撃SP +20','sp')}${chip('重攻撃BRK 19','brk')}</div></div>
+  </div>
+  <div class="skill-grid">
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge normal">通常攻撃</span><span class="sk-name">摧破</span></div>
+      <div class="sk-desc">最大4段の攻撃で敵に物理ダメージを与える。重攻撃はブレイク値19を与える。終撃：ブレイク状態の敵に高い物理ダメージを与えてSPを一定量回復する。</div>
+      ${slbl('重攻撃タイミング（操作中）')}
+      ${timingBlock({spPerHit:20,brkPerHit:19,heavySec:3.05,loopSec:3.62,spPerSec:6.56,brkPerSec:6.23})}
+      ${slbl('ダメージ倍率（%）')}
+      ${naTable({ranks:[
+        {r:1,h:[24,29,35,68],fin:400,plunge:80},{r:2,h:[27,32,39,74],fin:440,plunge:88},
+        {r:3,h:[29,35,42,81],fin:480,plunge:96},{r:4,h:[32,38,46,88],fin:520,plunge:104},
+        {r:5,h:[34,41,49,95],fin:560,plunge:112},{r:6,h:[36,44,53,101],fin:600,plunge:120},
+        {r:7,h:[39,47,56,108],fin:640,plunge:128},{r:8,h:[41,49,60,115],fin:680,plunge:136},
+        {r:9,h:[44,52,63,122],fin:720,plunge:144},{r:'特化I',h:[47,56,67,130],fin:770,plunge:154},
+        {r:'特化II',h:[50,60,73,140],fin:830,plunge:166},{r:'特化III',h:[55,65,79,152],fin:900,plunge:180},
+      ]})}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge skill">戦技</span><span class="sk-name">浄化身</span></div>
+      <div class="sk-props">${chip('SP消費 100','sp')}</div>
+      <div class="sk-desc">前進しながら槍を振り、物理ダメージを2回与える。その後、地面に重い打撃を放ち、再度前方のすべての敵に物理ダメージと転倒効果を与える。最後の一撃を受けた敵がクラッシュ状態でない場合、追加で物理脆弱を付与する。</div>
+      <div class="crash-effects">${ce('kd','⬇ 転倒（常に1段クラッシュ付与）')}${ce('vuln','🔓 物理脆弱（クラッシュ中でない場合のみ追加）')}</div>
+      ${note('3段目に転倒が確定で発動する。クラッシュ段階が0の敵には1段目を与え、クラッシュ中（1〜3段）の敵には+1段増加する（上限4）。<br>クラッシュ中でない場合は物理脆弱も追加付与する。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1段','2段','3段（転倒）','物理脆弱'],[
+        {r:1,h:[38,38,119],v:'5%'},{r:2,h:[42,42,131],v:'5%'},{r:3,h:[46,46,143],v:'5%'},
+        {r:4,h:[50,50,155],v:'5%'},{r:5,h:[53,53,167],v:'5%'},{r:6,h:[57,57,178],v:'7%'},
+        {r:7,h:[61,61,190],v:'7%'},{r:8,h:[65,65,202],v:'7%'},{r:9,h:[69,69,214],v:'9%'},
+        {r:'特化I',h:[73,73,229],v:'10%'},{r:'特化II',h:[79,79,247],v:'10%'},{r:'特化III',h:[86,86,268],v:'12%'},
+      ],r=>[r.h[0],r.h[1],r.h[2],r.v])}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge chain">連携技</span><span class="sk-name">忿怒形</span></div>
+      <div class="sk-props">${chip('CD 16s','gray')}</div>
+      <div class="sk-desc">物理脆弱または破砕（クラッシュ段階1以上）の敵が、操作中のオペレーターの重攻撃を受けると発動可能。化身を放ち、槍で突き刺す。物理ダメージを与え、リンク状態を獲得する。</div>
+      ${note('トリガー: 操作中 + 重攻撃 + 敵が物理脆弱 or クラッシュ段階≥1<br>リンク状態（20秒）を付与。リンク中に必殺技を使うとボーナス打撃が追加される。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1段','2段（BRK+2）'],[
+        {r:1,h:[47,167]},{r:2,h:[51,183]},{r:3,h:[56,200]},{r:4,h:[61,217]},{r:5,h:[65,233]},
+        {r:6,h:[70,250]},{r:7,h:[75,267]},{r:8,h:[79,283]},{r:9,h:[84,300]},
+        {r:'特化I',h:[90,321]},{r:'特化II',h:[97,346]},{r:'特化III',h:[105,375]},
+      ],r=>[r.h[0],r.h[1]])}
+    </div>
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge ult">必殺技</span><span class="sk-name">不動心</span></div>
+      <div class="sk-props">${chip('USC 90','ult')}${chip('CD 15s','gray')}</div>
+      <div class="sk-desc">化身を放ち、不動杵で前方の地面に重い打撃を放つ。広範囲の敵に物理ダメージと転倒効果を与え、すべての敵を中心に引き寄せる。一定時間後、打撃範囲内の敵に再度高い物理ダメージと転倒効果を与える。必殺技発動時にリンク状態を消費した場合、追加で高い物理ダメージを与える。</div>
+      <div class="crash-effects">${ce('kd','⬇ 転倒×2回（1撃目・2撃目それぞれクラッシュ+1段）')}</div>
+      ${note('転倒を2回発動するため、クラッシュ段階を最大+2増加させる（段階4の場合は変化なし）。<br>リンク状態を消費した場合にボーナス打撃が追加される。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1撃目（転倒）','2撃目（転倒）','ボーナス（リンク消費時）'],[
+        {r:1,h:[178,178],b:267},{r:2,h:[196,196],b:294},{r:3,h:[213,213],b:320},
+        {r:4,h:[231,231],b:347},{r:5,h:[249,249],b:374},{r:6,h:[267,267],b:400},
+        {r:7,h:[284,284],b:427},{r:8,h:[302,302],b:454},{r:9,h:[320,320],b:480},
+        {r:'特化I',h:[342,342],b:514},{r:'特化II',h:[369,369],b:554},{r:'特化III',h:[400,400],b:600},
+      ],r=>[r.h[0],r.h[1],r.b])}
+    </div>
+  </div>`;
+}
+
+function buildPogranicnik(){
+  return`
+  <div class="char-header">
+    <div class="char-icon phys">波</div>
+    <div><div class="char-name">ポグラニチニク</div>
+    <div class="char-meta">${chip('物理','phys')}${chip('片手剣','gray')}${chip('USC 90','ult')}${chip('重攻撃SP +20','sp')}${chip('重攻撃BRK 18','brk')}</div></div>
+  </div>
+  <div class="skill-grid">
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge normal">通常攻撃</span><span class="sk-name">全面攻勢</span></div>
+      <div class="sk-desc">最大5段の攻撃で敵に物理ダメージを与える。重攻撃はブレイク値18を与える。終撃：ブレイク状態の敵に高い物理ダメージを与えてSPを一定量回復する。</div>
+      ${slbl('重攻撃タイミング（操作中）')}
+      ${timingBlock({spPerHit:20,brkPerHit:18,heavySec:3.42,loopSec:3.98,spPerSec:5.85,brkPerSec:5.26})}
+      ${slbl('ダメージ倍率（%）')}
+      ${naTable({ranks:[
+        {r:1,h:[23,28,33,38,43],fin:400,plunge:80},{r:2,h:[25,31,36,43,47],fin:440,plunge:88},
+        {r:3,h:[28,34,40,46,52],fin:480,plunge:96},{r:4,h:[30,36,43,50,56],fin:520,plunge:104},
+        {r:5,h:[32,39,46,53,60],fin:560,plunge:112},{r:6,h:[35,42,50,57,65],fin:600,plunge:120},
+        {r:7,h:[37,45,53,61,69],fin:640,plunge:128},{r:8,h:[39,48,56,65,73],fin:680,plunge:136},
+        {r:9,h:[41,50,59,69,77],fin:720,plunge:144},{r:'特化I',h:[44,54,64,73,83],fin:770,plunge:154},
+        {r:'特化II',h:[48,58,68,79,89],fin:830,plunge:166},{r:'特化III',h:[52,63,74,86,97],fin:900,plunge:180},
+      ]})}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge skill">戦技</span><span class="sk-name">戦線粉砕</span></div>
+      <div class="sk-props">${chip('SP消費 100','sp')}</div>
+      <div class="sk-desc">前方範囲の敵に斬撃を2段放ち、物理ダメージと破砕を与える。同時に、消費したクラッシュ段階に応じてSPを回復する（複数の敵に命中しても回復は1回のみ）。</div>
+      <div class="crash-effects">${ce('csh','💥 破砕（クラッシュ段階を全消費 → SP回収）')}</div>
+      ${note('破砕はクラッシュ段階を全消費しSPを回収する。0段の場合は1段に増加するだけで回収効果なし。<br>破砕が有効になると同時に連携技「満月迎撃」がトリガーされる。')}
+      ${spStageTable([
+        {label:'〜特化I前', vals:[0,5,10,20,30]},
+        {label:'特化I以降', vals:[0,5,15,25,35]},
+      ])}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1段（BRK+5）','2段（BRK+5・破砕）'],[
+        {r:1,h:[86,106]},{r:2,h:[94,116]},{r:3,h:[103,127]},{r:4,h:[111,137]},{r:5,h:[120,148]},
+        {r:6,h:[128,158]},{r:7,h:[137,169]},{r:8,h:[145,180]},{r:9,h:[154,190]},
+        {r:'特化I',h:[165,203]},{r:'特化II',h:[177,219]},{r:'特化III',h:[192,238]},
+      ],r=>[r.h[0],r.h[1]])}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge chain">連携技</span><span class="sk-name">満月迎撃</span></div>
+      <div class="sk-props">${chip('CD 18s','gray')}${chip('SP回収あり','sp')}</div>
+      <div class="sk-desc">敵が猛撃または破砕によってクラッシュ段階が消費されると発動可能。消費した最大クラッシュ段階と同じ回数、敵に斬撃を放つ（最大3段）。斬撃ごとに物理ダメージを与えSPを一定量回復する。4段階のクラッシュを消費した場合、3段目の斬撃が強化される。</div>
+      ${note('トリガー: 破砕/猛撃でクラッシュ段階が消費された直後（操作中でなくてもOK）<br>SP回収: 1段目+5 / 2段目+7 / 3段目+13 / 3段目（4段消費・強化）+23')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1段','2段','3段','3段（4段消費・強化）','CD'],[
+        {r:1,h:[42,54,66],e3:132,cd:18},{r:2,h:[46,59,73],e3:145,cd:18},{r:3,h:[50,65,79],e3:158,cd:18},
+        {r:4,h:[55,70,86],e3:172,cd:18},{r:5,h:[59,76,92],e3:185,cd:18},{r:6,h:[63,81,99],e3:198,cd:18},
+        {r:7,h:[67,86,106],e3:211,cd:18},{r:8,h:[71,92,112],e3:224,cd:18},{r:9,h:[76,97,119],e3:238,cd:18},
+        {r:'特化I',h:[81,104,127],e3:254,cd:18},{r:'特化II',h:[87,112,137],e3:274,cd:18},{r:'特化III',h:[95,122,149],e3:297,cd:17},
+      ],r=>[r.h[0],r.h[1],r.h[2]||'—',r.e3,r.cd+'s'])}
+    </div>
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge ult">必殺技</span><span class="sk-name">盾兵旗隊、進め</span></div>
+      <div class="sk-props">${chip('USC 90','ult')}${chip('CD 10s','gray')}${chip('鉄誓 5スタック','gray')}</div>
+      <div class="sk-desc">目標の敵を中心に、4体の盾兵を召喚する。盾兵は目標に向かって進軍し、進軍途中の敵を押し出して物理ダメージを与え、同時に鉄誓を5回分獲得する。敵が物理異常またはポグラニチニクの連携技ダメージを受けると、鉄誓を1回消費して盾兵を1体召喚する。盾兵は敵を撹乱し物理ダメージを与えSPを回復する。最後の鉄誓消費時は盾兵4体が勝決を発動し高い物理ダメージを与えSPを大量に回復する。</div>
+      ${note('撹乱SP: +7.5（特化I以降+10）　勝決SP: +30（特化I以降+40）')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['進軍','撹乱','勝決','撹乱SP','勝決SP'],[
+        {r:1,ma:133,di:45,fi:200,ds:7.5,fs:30},{r:2,ma:147,di:49,fi:220,ds:7.5,fs:30},
+        {r:3,ma:160,di:53,fi:240,ds:7.5,fs:30},{r:4,ma:173,di:58,fi:260,ds:7.5,fs:30},
+        {r:5,ma:186,di:62,fi:280,ds:7.5,fs:30},{r:6,ma:200,di:67,fi:300,ds:7.5,fs:30},
+        {r:7,ma:213,di:71,fi:320,ds:7.5,fs:30},{r:8,ma:226,di:76,fi:340,ds:7.5,fs:30},
+        {r:9,ma:240,di:80,fi:360,ds:7.5,fs:30},{r:'特化I',ma:256,di:86,fi:385,ds:10,fs:40},
+        {r:'特化II',ma:276,di:92,fi:415,ds:10,fs:40},{r:'特化III',ma:300,di:100,fi:450,ds:10,fs:40},
+      ],r=>[r.ma,r.di,r.fi,'+'+r.ds,'+'+r.fs])}
+    </div>
+  </div>`;
+}
+
+function buildAlderia(){
+  return`
+  <div class="char-header">
+    <div class="char-icon nature">ア</div>
+    <div><div class="char-name">アルデリア</div>
+    <div class="char-meta">${chip('自然','nature')}${chip('アーツユニット','gray')}${chip('USC 90','ult')}${chip('重攻撃SP +18','sp')}${chip('重攻撃BRK 18','brk')}</div></div>
+  </div>
+  <div class="skill-grid">
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge normal">通常攻撃</span><span class="sk-name">岩の囁き</span></div>
+      <div class="sk-desc">最大4段の攻撃で敵に自然ダメージを与える。重攻撃はブレイク値18を与える。終撃：ブレイク状態の敵に高い自然ダメージを与えてSPを一定量回復する。</div>
+      ${slbl('重攻撃タイミング（操作中）')}
+      ${timingBlock({spPerHit:18,brkPerHit:18,heavySec:3.52,loopSec:4.42,spPerSec:5.11,brkPerSec:5.11})}
+      ${slbl('ダメージ倍率（%）')}
+      ${naTable({ranks:[
+        {r:1,h:[30,40,53,55],fin:400,plunge:80},{r:2,h:[33,44,58,61],fin:440,plunge:88},
+        {r:3,h:[36,48,63,66],fin:480,plunge:96},{r:4,h:[39,52,68,72],fin:520,plunge:104},
+        {r:5,h:[42,56,74,77],fin:560,plunge:112},{r:6,h:[45,60,79,83],fin:600,plunge:120},
+        {r:7,h:[48,64,84,88],fin:640,plunge:128},{r:8,h:[51,68,89,94],fin:680,plunge:136},
+        {r:9,h:[54,72,95,99],fin:720,plunge:144},{r:'特化I',h:[58,77,101,106],fin:770,plunge:154},
+        {r:'特化II',h:[62,83,109,114],fin:830,plunge:166},{r:'特化III',h:[68,90,118,124],fin:900,plunge:180},
+      ]})}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge skill">戦技</span><span class="sk-name">ドリーラッシュ</span></div>
+      <div class="sk-props">${chip('SP消費 100','sp')}</div>
+      <div class="sk-desc">ドリーさんに乗って敵に突進し、自然ダメージを与える。腐食状態の敵に命中した場合、腐食状態を消費し、物理脆弱とアーツ脆弱を付与する。</div>
+      <div class="crash-effects">${ce('vuln','🔓 物理脆弱 + アーツ脆弱（腐食消費時に付与）')}</div>
+      ${note('クラッシュ効果なし。腐食状態を消費して脆弱を付与する。腐食は連携技「イラプション・コラム」で付与する。脆弱持続30秒。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['ヒット','脆弱量'],[
+        {r:1,h:[142],v:'12%'},{r:2,h:[156],v:'12%'},{r:3,h:[171],v:'12%'},{r:4,h:[185],v:'13%'},
+        {r:5,h:[199],v:'13%'},{r:6,h:[213],v:'13%'},{r:7,h:[228],v:'14%'},{r:8,h:[242],v:'14%'},
+        {r:9,h:[256],v:'16%'},{r:'特化I',h:[274],v:'17%'},{r:'特化II',h:[295],v:'18%'},{r:'特化III',h:[320],v:'20%'},
+      ],r=>[r.h[0],r.v])}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge chain">連携技</span><span class="sk-name">イラプション・コラム</span></div>
+      <div class="sk-props">${chip('CD 18s','gray')}</div>
+      <div class="sk-desc">操作中のオペレーターがクラッシュまたはアーツ付着状態でない敵に重攻撃を与えた場合に発動可能。敵に火山雲を放ち、接近後に自然ダメージを与える。火山雲は敵を追尾し、少し経つと爆発する。周囲の敵にはそのダメージの半分の自然ダメージを与え、強制的に短時間腐食状態にする。</div>
+      <div class="crash-effects">${ce('corr','🌫 腐食付与（7秒）')}</div>
+      ${note('トリガー: 操作中 + 重攻撃 + 敵がクラッシュ中でもアーツ付着中でもない状態<br>腐食はアルデリアの戦技「ドリーラッシュ」で消費する。爆発は周囲全敵に半減ダメージ＋腐食付与。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['直撃','爆発（周囲・半減）','CD'],[
+        {r:1,h:[45],ex:111,cd:18},{r:2,h:[49],ex:122,cd:18},{r:3,h:[54],ex:133,cd:18},
+        {r:4,h:[58],ex:144,cd:18},{r:5,h:[62],ex:155,cd:18},{r:6,h:[67],ex:167,cd:18},
+        {r:7,h:[71],ex:178,cd:18},{r:8,h:[76],ex:189,cd:18},{r:9,h:[80],ex:200,cd:18},
+        {r:'特化I',h:[86],ex:214,cd:18},{r:'特化II',h:[93],ex:230,cd:18},{r:'特化III',h:[100],ex:250,cd:17},
+      ],r=>[r.h[0],r.ex,r.cd+'s'])}
+    </div>
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge ult">必殺技</span><span class="sk-name">もふもふパーティ</span></div>
+      <div class="sk-props">${chip('USC 90','ult')}${chip('持続 3s','gray')}</div>
+      <div class="sk-desc">アルデリアは移動できる状態で持続的にアーツを放つ。ドリーさんの助けを呼び、周囲にドリーさんの分身を放つ。分身が敵に命中するたびに、自然ダメージを与える。同じ敵は0.3秒に1回までダメージを受ける。</div>
+      ${note('持続型（3秒）。移動しながら発動可能。同一敵への命中は0.3秒インターバル制限（最大約10ヒット/敵）。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['分身ヒット/回','BRK/回'],[
+        {r:1,h:73,b:2},{r:2,h:81,b:2},{r:3,h:88,b:2},{r:4,h:95,b:2},{r:5,h:103,b:2},
+        {r:6,h:110,b:2},{r:7,h:117,b:2},{r:8,h:125,b:2},{r:9,h:132,b:2},
+        {r:'特化I',h:141,b:3},{r:'特化II',h:152,b:3},{r:'特化III',h:165,b:3},
+      ],r=>[r.h,r.b])}
+    </div>
+  </div>`;
+}
+
+function buildChen(){
+  return`
+  <div class="char-header">
+    <div class="char-icon phys">陳</div>
+    <div><div class="char-name">チェン・センユー</div>
+    <div class="char-meta">${chip('物理','phys')}${chip('片手剣','gray')}${chip('USC 70','ult')}${chip('重攻撃SP +18','sp')}${chip('重攻撃BRK 16','brk')}</div></div>
+  </div>
+  <div class="skill-grid">
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge normal">通常攻撃</span><span class="sk-name">飛霞破り</span></div>
+      <div class="sk-desc">最大5段の攻撃で敵に物理ダメージを与える。重攻撃はブレイク値16を与える。終撃：ブレイク状態の敵に高い物理ダメージを与えてSPを一定量回復する。</div>
+      ${slbl('重攻撃タイミング（操作中）')}
+      ${timingBlock({spPerHit:18,brkPerHit:16,heavySec:2.78,loopSec:3.42,spPerSec:6.47,brkPerSec:5.76})}
+      ${slbl('ダメージ倍率（%）')}
+      ${naTable({ranks:[
+        {r:1,h:[20,24,27,30,40],fin:400,plunge:80},{r:2,h:[22,26,29,33,44],fin:440,plunge:88},
+        {r:3,h:[24,29,32,36,48],fin:480,plunge:96},{r:4,h:[26,31,35,39,52],fin:520,plunge:104},
+        {r:5,h:[28,34,48,42,56],fin:560,plunge:112},{r:6,h:[30,36,40,45,60],fin:600,plunge:120},
+        {r:7,h:[32,38,43,48,64],fin:640,plunge:128},{r:8,h:[34,41,46,51,68],fin:680,plunge:136},
+        {r:9,h:[36,43,48,54,72],fin:720,plunge:144},{r:'特化I',h:[39,46,52,58,77],fin:770,plunge:154},
+        {r:'特化II',h:[42,50,56,62,83],fin:830,plunge:166},{r:'特化III',h:[45,54,60,68,90],fin:900,plunge:180},
+      ]})}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge skill">戦技</span><span class="sk-name">蒼穹返し</span></div>
+      <div class="sk-props">${chip('SP消費 100','sp')}</div>
+      <div class="sk-desc">敵を下から突き上げて攻撃し、物理ダメージを与え、浮遊効果を付与する。</div>
+      <div class="crash-effects">${ce('flt','⬆ 浮遊（クラッシュ段階+1、上限4）')}</div>
+      ${note('浮遊時間はランクで増加: Rank1〜5=1秒 / Rank6〜8=1.5秒 / Rank9=2秒 / 特化III=2.5秒')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['ヒット（浮遊）','浮遊時間'],[
+        {r:1,h:[169],ft:1.0},{r:2,h:[186],ft:1.0},{r:3,h:[203],ft:1.0},{r:4,h:[219],ft:1.0},
+        {r:5,h:[236],ft:1.0},{r:6,h:[253],ft:1.5},{r:7,h:[270],ft:1.5},{r:8,h:[287],ft:1.5},
+        {r:9,h:[304],ft:2.0},{r:'特化I',h:[325],ft:2.0},{r:'特化II',h:[350],ft:2.0},{r:'特化III',h:[380],ft:2.5},
+      ],r=>[r.h[0],r.ft+'s'])}
+    </div>
+    <div class="skill-card">
+      <div class="sk-header"><span class="sk-badge chain">連携技</span><span class="sk-name">天河昇</span></div>
+      <div class="sk-props">${chip('CD 16s','gray')}</div>
+      <div class="sk-desc">敵がクラッシュ状態になった場合に発動可能。敵を通り抜けながら連続斬撃を行い、進路上のすべての敵に物理ダメージを与え、浮遊効果を付与する。</div>
+      ${note('トリガー: 敵がクラッシュ段階を新たに獲得した瞬間（操作中でなくてもOK）<br>範囲攻撃。進路上の全敵にヒット。特化IIIでCD15秒に短縮。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['ヒット（浮遊）','CD'],[
+        {r:1,h:[120],cd:16},{r:2,h:[132],cd:16},{r:3,h:[144],cd:16},{r:4,h:[156],cd:16},
+        {r:5,h:[168],cd:16},{r:6,h:[180],cd:16},{r:7,h:[192],cd:16},{r:8,h:[204],cd:16},
+        {r:9,h:[216],cd:16},{r:'特化I',h:[231],cd:16},{r:'特化II',h:[249],cd:16},{r:'特化III',h:[270],cd:15},
+      ],r=>[r.h[0],r.cd+'s'])}
+    </div>
+    <div class="skill-card full">
+      <div class="sk-header"><span class="sk-badge ult">必殺技</span><span class="sk-name">凍風斬り</span></div>
+      <div class="sk-props">${chip('USC 70','ult')}</div>
+      <div class="sk-desc">7回の斬撃を繰り出し、毎回物理ダメージを与える。最後の斬撃は敵に高いダメージを与える。</div>
+      ${note('USC=70（他3キャラは90）と必殺技コストが低い。1〜6撃目BRK+15/撃、7撃目BRK+20。')}
+      ${slbl('ダメージ倍率（%）')}
+      ${rankTable(['1〜6撃（各）','7撃目（必殺）'],[
+        {r:1,h:36,f:455},{r:2,h:40,f:500},{r:3,h:43,f:545},{r:4,h:47,f:591},{r:5,h:50,f:636},
+        {r:6,h:54,f:682},{r:7,h:58,f:727},{r:8,h:61,f:773},{r:9,h:65,f:818},
+        {r:'特化I',h:69,f:875},{r:'特化II',h:75,f:943},{r:'特化III',h:81,f:1023},
+      ],r=>[r.h,r.f])}
+    </div>
+  </div>`;
+}
+
+const BUILDERS = {
+  reephone: buildReephone,
+  pogranicnik: buildPogranicnik,
+  alderia: buildAlderia,
+  chen_senyuu: buildChen,
+};
+const NAMES = {reephone:'リーフォン',pogranicnik:'ポグラニチニク',alderia:'アルデリア',chen_senyuu:'チェン・センユー'};
+const ORDER = ['reephone','pogranicnik','alderia','chen_senyuu'];
+const tabs = document.getElementById('tabs');
+const pages = document.getElementById('pages');
+
+ORDER.forEach((cid, i) => {
+  const tab = document.createElement('button');
+  tab.className = 'tab' + (i===0?' on':'');
+  tab.textContent = NAMES[cid];
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+    tab.classList.add('on');
+    document.getElementById('page-'+cid).classList.add('on');
+  };
+  tabs.appendChild(tab);
+  const page = document.createElement('div');
+  page.className = 'page'+(i===0?' on':'');
+  page.id = 'page-'+cid;
+  page.innerHTML = BUILDERS[cid]();
+  pages.appendChild(page);
+});
+</script>
+</body>
+</html>
