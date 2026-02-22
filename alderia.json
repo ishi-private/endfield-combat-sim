@@ -1,0 +1,435 @@
+{
+  "id": "alderia",
+  "name": "アルデリア",
+  "rarity": null,
+  "class": null,
+  "arts": "nature",
+  "normal_attack": {
+    "name": "岩の囁き",
+    "type": "nature",
+    "heavy_attack_break_value": 18,
+    "sp_regen_on_finisher": true,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          30,
+          40,
+          53,
+          55
+        ],
+        "finisher": 400,
+        "plunge": 80
+      },
+      {
+        "rank": 2,
+        "hits": [
+          33,
+          44,
+          58,
+          61
+        ],
+        "finisher": 440,
+        "plunge": 88
+      },
+      {
+        "rank": 3,
+        "hits": [
+          36,
+          48,
+          63,
+          66
+        ],
+        "finisher": 480,
+        "plunge": 96
+      },
+      {
+        "rank": 4,
+        "hits": [
+          39,
+          52,
+          68,
+          72
+        ],
+        "finisher": 520,
+        "plunge": 104
+      },
+      {
+        "rank": 5,
+        "hits": [
+          42,
+          56,
+          74,
+          77
+        ],
+        "finisher": 560,
+        "plunge": 112
+      },
+      {
+        "rank": 6,
+        "hits": [
+          45,
+          60,
+          79,
+          83
+        ],
+        "finisher": 600,
+        "plunge": 120
+      },
+      {
+        "rank": 7,
+        "hits": [
+          48,
+          64,
+          84,
+          88
+        ],
+        "finisher": 640,
+        "plunge": 128
+      },
+      {
+        "rank": 8,
+        "hits": [
+          51,
+          68,
+          89,
+          94
+        ],
+        "finisher": 680,
+        "plunge": 136
+      },
+      {
+        "rank": 9,
+        "hits": [
+          54,
+          72,
+          95,
+          99
+        ],
+        "finisher": 720,
+        "plunge": 144
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          58,
+          77,
+          101,
+          106
+        ],
+        "finisher": 770,
+        "plunge": 154
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          62,
+          83,
+          109,
+          114
+        ],
+        "finisher": 830,
+        "plunge": 166
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          68,
+          90,
+          118,
+          124
+        ],
+        "finisher": 900,
+        "plunge": 180
+      }
+    ],
+    "heavy_attack_sp_regen": 18,
+    "heavy_attack_time_sec": 3.52,
+    "loop_time_sec": 4.42,
+    "loop_time_with_cancel_sec": 3.92,
+    "break_per_sec": 5.11,
+    "break_per_sec_loop": null,
+    "break_per_sec_with_cancel": 4.59,
+    "break_per_sec_mixed": 4.59,
+    "sp_regen_per_sec": 5.11,
+    "sp_regen_per_sec_loop": null,
+    "sp_regen_per_sec_with_cancel": 4.59,
+    "sp_regen_per_sec_mixed": 4.59
+  },
+  "skill": {
+    "name": "ドリーラッシュ",
+    "description": "ドリーさんに乗って敵に突進し、自然ダメージを与える。腐食状態の敵に命中した場合、腐食状態を消費し、物理脆弱とアーツ脆弱を付与する。",
+    "type": "nature",
+    "sp_cost": 100,
+    "break_value": 10,
+    "vuln_duration_sec": 30,
+    "note": "腐食消費時に物理脆弱＋アーツ脆弱を付与。脆弱効果量はランクで変動。",
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          142
+        ],
+        "vuln_pct": 12
+      },
+      {
+        "rank": 2,
+        "hits": [
+          156
+        ],
+        "vuln_pct": 12
+      },
+      {
+        "rank": 3,
+        "hits": [
+          171
+        ],
+        "vuln_pct": 12
+      },
+      {
+        "rank": 4,
+        "hits": [
+          185
+        ],
+        "vuln_pct": 13
+      },
+      {
+        "rank": 5,
+        "hits": [
+          199
+        ],
+        "vuln_pct": 13
+      },
+      {
+        "rank": 6,
+        "hits": [
+          213
+        ],
+        "vuln_pct": 13
+      },
+      {
+        "rank": 7,
+        "hits": [
+          228
+        ],
+        "vuln_pct": 14
+      },
+      {
+        "rank": 8,
+        "hits": [
+          242
+        ],
+        "vuln_pct": 14
+      },
+      {
+        "rank": 9,
+        "hits": [
+          256
+        ],
+        "vuln_pct": 16
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          274
+        ],
+        "vuln_pct": 17
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          295
+        ],
+        "vuln_pct": 18
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          320
+        ],
+        "vuln_pct": 20
+      }
+    ]
+  },
+  "chain_skill": {
+    "name": "イラプション・コラム",
+    "description": "操作中のオペレーターがクラッシュまたはアーツ付着状態でない敵に重攻撃を与えた場合に発動可能。敵に火山雲を放ち、接近後に自然ダメージを与える。火山雲は敵を追尾し、少し経つと爆発する。周囲の敵にはそのダメージの半分の自然ダメージを与え、強制的に短時間腐食状態にする。",
+    "type": "nature",
+    "sp_cost": 0,
+    "trigger_condition": "operator_is_active AND heavy_attack_hits AND enemy_not_crashed AND enemy_not_arts_attached",
+    "break_value": 10,
+    "corrosion_duration_sec": 7,
+    "explosion_dmg_to_surrounding": "hit_dmg * 0.5",
+    "note": "爆発は追尾後に時間差で発生。周囲敵へのダメージは直撃の50%、かつ腐食付与。",
+    "ranks": [
+      {
+        "rank": 1,
+        "cooldown_sec": 18,
+        "hits": [
+          45
+        ],
+        "explosion": 111
+      },
+      {
+        "rank": 2,
+        "cooldown_sec": 18,
+        "hits": [
+          49
+        ],
+        "explosion": 122
+      },
+      {
+        "rank": 3,
+        "cooldown_sec": 18,
+        "hits": [
+          54
+        ],
+        "explosion": 133
+      },
+      {
+        "rank": 4,
+        "cooldown_sec": 18,
+        "hits": [
+          58
+        ],
+        "explosion": 144
+      },
+      {
+        "rank": 5,
+        "cooldown_sec": 18,
+        "hits": [
+          62
+        ],
+        "explosion": 155
+      },
+      {
+        "rank": 6,
+        "cooldown_sec": 18,
+        "hits": [
+          67
+        ],
+        "explosion": 167
+      },
+      {
+        "rank": 7,
+        "cooldown_sec": 18,
+        "hits": [
+          71
+        ],
+        "explosion": 178
+      },
+      {
+        "rank": 8,
+        "cooldown_sec": 18,
+        "hits": [
+          76
+        ],
+        "explosion": 189
+      },
+      {
+        "rank": 9,
+        "cooldown_sec": 18,
+        "hits": [
+          80
+        ],
+        "explosion": 200
+      },
+      {
+        "rank": "特化I",
+        "cooldown_sec": 18,
+        "hits": [
+          86
+        ],
+        "explosion": 214
+      },
+      {
+        "rank": "特化II",
+        "cooldown_sec": 18,
+        "hits": [
+          93
+        ],
+        "explosion": 230
+      },
+      {
+        "rank": "特化III",
+        "cooldown_sec": 17,
+        "hits": [
+          100
+        ],
+        "explosion": 250
+      }
+    ]
+  },
+  "ultimate": {
+    "name": "もふもふパーティ",
+    "description": "アルデリアは移動できる状態で持続的にアーツを放つ。ドリーさんの助けを呼び、周囲にドリーさんの分身を放つ。分身が敵に命中するたびに、自然ダメージを与える。同じ敵は0.3秒に1回までダメージを受ける。",
+    "type": "nature",
+    "ult_cost": 90,
+    "duration_sec": 3,
+    "hit_interval_sec": 0.3,
+    "note": "持続型。duration中、移動可能。同一敵への命中は0.3秒インターバル制限あり。",
+    "ranks": [
+      {
+        "rank": 1,
+        "hit_dmg": 73,
+        "break_value": 2
+      },
+      {
+        "rank": 2,
+        "hit_dmg": 81,
+        "break_value": 2
+      },
+      {
+        "rank": 3,
+        "hit_dmg": 88,
+        "break_value": 2
+      },
+      {
+        "rank": 4,
+        "hit_dmg": 95,
+        "break_value": 2
+      },
+      {
+        "rank": 5,
+        "hit_dmg": 103,
+        "break_value": 2
+      },
+      {
+        "rank": 6,
+        "hit_dmg": 110,
+        "break_value": 2
+      },
+      {
+        "rank": 7,
+        "hit_dmg": 117,
+        "break_value": 2
+      },
+      {
+        "rank": 8,
+        "hit_dmg": 125,
+        "break_value": 2
+      },
+      {
+        "rank": 9,
+        "hit_dmg": 132,
+        "break_value": 2
+      },
+      {
+        "rank": "特化I",
+        "hit_dmg": 141,
+        "break_value": 3
+      },
+      {
+        "rank": "特化II",
+        "hit_dmg": 152,
+        "break_value": 3
+      },
+      {
+        "rank": "特化III",
+        "hit_dmg": 165,
+        "break_value": 3
+      }
+    ]
+  },
+  "weapon_type": "アーツユニット"
+}

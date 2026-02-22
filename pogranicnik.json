@@ -1,0 +1,534 @@
+{
+  "id": "pogranicnik",
+  "name": "ポグラニチニク",
+  "rarity": null,
+  "class": null,
+  "arts": "physical",
+  "normal_attack": {
+    "name": "全面攻勢",
+    "type": "physical",
+    "heavy_attack_break_value": 18,
+    "sp_regen_on_finisher": true,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          23,
+          28,
+          33,
+          38,
+          43
+        ],
+        "finisher": 400,
+        "plunge": 80
+      },
+      {
+        "rank": 2,
+        "hits": [
+          25,
+          31,
+          36,
+          43,
+          47
+        ],
+        "finisher": 440,
+        "plunge": 88
+      },
+      {
+        "rank": 3,
+        "hits": [
+          28,
+          34,
+          40,
+          46,
+          52
+        ],
+        "finisher": 480,
+        "plunge": 96
+      },
+      {
+        "rank": 4,
+        "hits": [
+          30,
+          36,
+          43,
+          50,
+          56
+        ],
+        "finisher": 520,
+        "plunge": 104
+      },
+      {
+        "rank": 5,
+        "hits": [
+          32,
+          39,
+          46,
+          53,
+          60
+        ],
+        "finisher": 560,
+        "plunge": 112
+      },
+      {
+        "rank": 6,
+        "hits": [
+          35,
+          42,
+          50,
+          57,
+          65
+        ],
+        "finisher": 600,
+        "plunge": 120
+      },
+      {
+        "rank": 7,
+        "hits": [
+          37,
+          45,
+          53,
+          61,
+          69
+        ],
+        "finisher": 640,
+        "plunge": 128
+      },
+      {
+        "rank": 8,
+        "hits": [
+          39,
+          48,
+          56,
+          65,
+          73
+        ],
+        "finisher": 680,
+        "plunge": 136
+      },
+      {
+        "rank": 9,
+        "hits": [
+          41,
+          50,
+          59,
+          69,
+          77
+        ],
+        "finisher": 720,
+        "plunge": 144
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          44,
+          54,
+          64,
+          73,
+          83
+        ],
+        "finisher": 770,
+        "plunge": 154
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          48,
+          58,
+          68,
+          79,
+          89
+        ],
+        "finisher": 830,
+        "plunge": 166
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          52,
+          63,
+          74,
+          86,
+          97
+        ],
+        "finisher": 900,
+        "plunge": 180
+      }
+    ],
+    "heavy_attack_sp_regen": 20,
+    "heavy_attack_time_sec": 3.42,
+    "loop_time_sec": 3.98,
+    "loop_time_with_cancel_sec": null,
+    "break_per_sec": 5.26,
+    "break_per_sec_loop": null,
+    "break_per_sec_with_cancel": null,
+    "break_per_sec_mixed": 4.52,
+    "sp_regen_per_sec": 5.85,
+    "sp_regen_per_sec_loop": null,
+    "sp_regen_per_sec_with_cancel": null,
+    "sp_regen_per_sec_mixed": 5.03
+  },
+  "skill": {
+    "name": "戦線粉砕",
+    "description": "前方範囲の敵に斬撃を2段放ち、物理ダメージと破砕を与える。同時に、消費したクラッシュ段階に応じてSPを回復する（複数の敵に命中しても回復は1回のみ）。",
+    "type": "physical",
+    "sp_cost": 100,
+    "hit1_break_value": 5,
+    "hit2_break_value": 5,
+    "note": "SP回復量はクラッシュ消費段階に応じて変動（1段階=5SP、2段階=10SP、3段階=20SP、4段階=30SP）。ランク特化Iで5/15/25/35に増加。",
+    "sp_regen_by_crush_stage": {
+      "default": {
+        "stage1": 5,
+        "stage2": 10,
+        "stage3": 20,
+        "stage4": 30
+      },
+      "特化I以降": {
+        "stage1": 5,
+        "stage2": 15,
+        "stage3": 25,
+        "stage4": 35
+      }
+    },
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          86,
+          106
+        ]
+      },
+      {
+        "rank": 2,
+        "hits": [
+          94,
+          116
+        ]
+      },
+      {
+        "rank": 3,
+        "hits": [
+          103,
+          127
+        ]
+      },
+      {
+        "rank": 4,
+        "hits": [
+          111,
+          137
+        ]
+      },
+      {
+        "rank": 5,
+        "hits": [
+          120,
+          148
+        ]
+      },
+      {
+        "rank": 6,
+        "hits": [
+          128,
+          158
+        ]
+      },
+      {
+        "rank": 7,
+        "hits": [
+          137,
+          169
+        ]
+      },
+      {
+        "rank": 8,
+        "hits": [
+          145,
+          180
+        ]
+      },
+      {
+        "rank": 9,
+        "hits": [
+          154,
+          190
+        ]
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          165,
+          203
+        ]
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          177,
+          219
+        ]
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          192,
+          238
+        ]
+      }
+    ]
+  },
+  "chain_skill": {
+    "name": "満月迎撃",
+    "description": "敵が猛撃または破砕によってクラッシュ段階が消費されると発動可能。消費した最大クラッシュ段階と同じ回数、敵に斬撃を放つ（最大3段）。斬撃ごとに物理ダメージを与え、SPを一定量回復する。斬撃数が多いほど、ダメージとSP回復量がアップする。4段階のクラッシュを消費した場合、3段目の斬撃が強化される。",
+    "type": "physical",
+    "sp_cost": 0,
+    "trigger_condition": "ally_heavy_attack_or_crush_consumes_crash_stage",
+    "max_hits": 3,
+    "hit_break_values": [
+      3,
+      3,
+      4,
+      9
+    ],
+    "sp_regen_per_hit": {
+      "hit1": 5,
+      "hit2": 7,
+      "hit3": 13,
+      "hit3_enhanced": 23
+    },
+    "note": "消費クラッシュ段階数=発動段数。4段消費時は3段目が強化版に変化。",
+    "ranks": [
+      {
+        "rank": 1,
+        "cooldown_sec": 18,
+        "hits": [
+          42,
+          54,
+          66
+        ],
+        "hit3_enhanced": 132
+      },
+      {
+        "rank": 2,
+        "cooldown_sec": 18,
+        "hits": [
+          46,
+          59,
+          73
+        ],
+        "hit3_enhanced": 145
+      },
+      {
+        "rank": 3,
+        "cooldown_sec": 18,
+        "hits": [
+          50,
+          65,
+          79
+        ],
+        "hit3_enhanced": 158
+      },
+      {
+        "rank": 4,
+        "cooldown_sec": 18,
+        "hits": [
+          55,
+          70,
+          86
+        ],
+        "hit3_enhanced": 172
+      },
+      {
+        "rank": 5,
+        "cooldown_sec": 18,
+        "hits": [
+          59,
+          76,
+          92
+        ],
+        "hit3_enhanced": 185
+      },
+      {
+        "rank": 6,
+        "cooldown_sec": 18,
+        "hits": [
+          63,
+          81,
+          99
+        ],
+        "hit3_enhanced": 198
+      },
+      {
+        "rank": 7,
+        "cooldown_sec": 18,
+        "hits": [
+          67,
+          86,
+          106
+        ],
+        "hit3_enhanced": 211
+      },
+      {
+        "rank": 8,
+        "cooldown_sec": 18,
+        "hits": [
+          71,
+          92,
+          112
+        ],
+        "hit3_enhanced": 224
+      },
+      {
+        "rank": 9,
+        "cooldown_sec": 18,
+        "hits": [
+          76,
+          97,
+          119
+        ],
+        "hit3_enhanced": 238
+      },
+      {
+        "rank": "特化I",
+        "cooldown_sec": 18,
+        "hits": [
+          81,
+          104,
+          127
+        ],
+        "hit3_enhanced": 254
+      },
+      {
+        "rank": "特化II",
+        "cooldown_sec": 18,
+        "hits": [
+          87,
+          112,
+          137
+        ],
+        "hit3_enhanced": 274
+      },
+      {
+        "rank": "特化III",
+        "cooldown_sec": 17,
+        "hits": [
+          95,
+          122,
+          149
+        ],
+        "hit3_enhanced": 297
+      }
+    ]
+  },
+  "ultimate": {
+    "name": "盾兵旗隊、進め",
+    "description": "目標の敵を中心に、4体の盾兵を召喚する。盾兵は目標に向かって進軍し、進軍途中の敵を押し出して物理ダメージを与え、同時に鉄誓を5回分獲得する。敵が物理異常またはポグラニチニクの連携技ダメージを受けると、鉄誓を1回消費して盾兵を1体召喚する。盾兵は敵を撹乱し、物理ダメージを与え、SPを一定量回復する。消費した鉄誓が最後の1回の場合、盾兵4体が勝決を発動し、高い物理ダメージを与え、SPを大量に回復する。",
+    "type": "physical",
+    "ult_cost": 90,
+    "cooldown_sec": 10,
+    "iron_vow_stacks": 5,
+    "iron_vow_duration_sec": 30,
+    "march_break_value": 10,
+    "finisher_break_value": 15,
+    "note": "鉄誓消費トリガー: 物理異常 or 連携技ダメージ被弾時。最後の1消費時は勝決（4体同時攻撃）に変化。",
+    "ranks": [
+      {
+        "rank": 1,
+        "march": 133,
+        "disrupt": 45,
+        "finisher": 200,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 2,
+        "march": 147,
+        "disrupt": 49,
+        "finisher": 220,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 3,
+        "march": 160,
+        "disrupt": 53,
+        "finisher": 240,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 4,
+        "march": 173,
+        "disrupt": 58,
+        "finisher": 260,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 5,
+        "march": 186,
+        "disrupt": 62,
+        "finisher": 280,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 6,
+        "march": 200,
+        "disrupt": 67,
+        "finisher": 300,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 7,
+        "march": 213,
+        "disrupt": 71,
+        "finisher": 320,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 8,
+        "march": 226,
+        "disrupt": 76,
+        "finisher": 340,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": 9,
+        "march": 240,
+        "disrupt": 80,
+        "finisher": 360,
+        "disrupt_sp_regen": 7.5,
+        "finisher_sp_regen": 30
+      },
+      {
+        "rank": "特化I",
+        "march": 256,
+        "disrupt": 86,
+        "finisher": 385,
+        "disrupt_sp_regen": 10,
+        "finisher_sp_regen": 40
+      },
+      {
+        "rank": "特化II",
+        "march": 276,
+        "disrupt": 92,
+        "finisher": 415,
+        "disrupt_sp_regen": 10,
+        "finisher_sp_regen": 40
+      },
+      {
+        "rank": "特化III",
+        "march": 300,
+        "disrupt": 100,
+        "finisher": 450,
+        "disrupt_sp_regen": 10,
+        "finisher_sp_regen": 40
+      }
+    ]
+  },
+  "weapon_type": "片手剣"
+}

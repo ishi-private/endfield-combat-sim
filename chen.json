@@ -1,0 +1,433 @@
+{
+  "id": "chen_senyuu",
+  "name": "チェン・センユー",
+  "rarity": null,
+  "class": null,
+  "arts": "physical",
+  "normal_attack": {
+    "name": "飛霞破り",
+    "type": "physical",
+    "heavy_attack_break_value": 16,
+    "sp_regen_on_finisher": true,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          20,
+          24,
+          27,
+          30,
+          40
+        ],
+        "finisher": 400,
+        "plunge": 80
+      },
+      {
+        "rank": 2,
+        "hits": [
+          22,
+          26,
+          29,
+          33,
+          44
+        ],
+        "finisher": 440,
+        "plunge": 88
+      },
+      {
+        "rank": 3,
+        "hits": [
+          24,
+          29,
+          32,
+          36,
+          48
+        ],
+        "finisher": 480,
+        "plunge": 96
+      },
+      {
+        "rank": 4,
+        "hits": [
+          26,
+          31,
+          35,
+          39,
+          52
+        ],
+        "finisher": 520,
+        "plunge": 104
+      },
+      {
+        "rank": 5,
+        "hits": [
+          28,
+          34,
+          48,
+          42,
+          56
+        ],
+        "finisher": 560,
+        "plunge": 112
+      },
+      {
+        "rank": 6,
+        "hits": [
+          30,
+          36,
+          40,
+          45,
+          60
+        ],
+        "finisher": 600,
+        "plunge": 120
+      },
+      {
+        "rank": 7,
+        "hits": [
+          32,
+          38,
+          43,
+          48,
+          64
+        ],
+        "finisher": 640,
+        "plunge": 128
+      },
+      {
+        "rank": 8,
+        "hits": [
+          34,
+          41,
+          46,
+          51,
+          68
+        ],
+        "finisher": 680,
+        "plunge": 136
+      },
+      {
+        "rank": 9,
+        "hits": [
+          36,
+          43,
+          48,
+          54,
+          72
+        ],
+        "finisher": 720,
+        "plunge": 144
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          39,
+          46,
+          52,
+          58,
+          77
+        ],
+        "finisher": 770,
+        "plunge": 154
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          42,
+          50,
+          56,
+          62,
+          83
+        ],
+        "finisher": 830,
+        "plunge": 166
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          45,
+          54,
+          60,
+          68,
+          90
+        ],
+        "finisher": 900,
+        "plunge": 180
+      }
+    ],
+    "heavy_attack_sp_regen": 18,
+    "heavy_attack_time_sec": 2.78,
+    "loop_time_sec": 3.42,
+    "loop_time_with_cancel_sec": null,
+    "break_per_sec": 5.76,
+    "break_per_sec_loop": null,
+    "break_per_sec_with_cancel": null,
+    "break_per_sec_mixed": 4.68,
+    "sp_regen_per_sec": 6.47,
+    "sp_regen_per_sec_loop": null,
+    "sp_regen_per_sec_with_cancel": null,
+    "sp_regen_per_sec_mixed": 5.26
+  },
+  "skill": {
+    "name": "蒼穹返し",
+    "description": "敵を下から突き上げて攻撃し、物理ダメージを与え、浮遊効果を付与する。",
+    "type": "physical",
+    "sp_cost": 100,
+    "break_value": 10,
+    "note": "浮遊時間はランクで段階的に増加（rank1-5: 1秒、rank6-8: 1.5秒、rank9: 2秒、特化III: 2.5秒）",
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          169
+        ],
+        "float_duration_sec": 1.0
+      },
+      {
+        "rank": 2,
+        "hits": [
+          186
+        ],
+        "float_duration_sec": 1.0
+      },
+      {
+        "rank": 3,
+        "hits": [
+          203
+        ],
+        "float_duration_sec": 1.0
+      },
+      {
+        "rank": 4,
+        "hits": [
+          219
+        ],
+        "float_duration_sec": 1.0
+      },
+      {
+        "rank": 5,
+        "hits": [
+          236
+        ],
+        "float_duration_sec": 1.0
+      },
+      {
+        "rank": 6,
+        "hits": [
+          253
+        ],
+        "float_duration_sec": 1.5
+      },
+      {
+        "rank": 7,
+        "hits": [
+          270
+        ],
+        "float_duration_sec": 1.5
+      },
+      {
+        "rank": 8,
+        "hits": [
+          287
+        ],
+        "float_duration_sec": 1.5
+      },
+      {
+        "rank": 9,
+        "hits": [
+          304
+        ],
+        "float_duration_sec": 2.0
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          325
+        ],
+        "float_duration_sec": 2.0
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          350
+        ],
+        "float_duration_sec": 2.0
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          380
+        ],
+        "float_duration_sec": 2.5
+      }
+    ]
+  },
+  "chain_skill": {
+    "name": "天河昇",
+    "description": "敵がクラッシュ状態になった場合に発動可能。敵を通り抜けながら連続斬撃を行い、進路上のすべての敵に物理ダメージを与え、浮遊効果を付与する。",
+    "type": "physical",
+    "sp_cost": 0,
+    "trigger_condition": "enemy_enters_crash_state",
+    "break_value": 10,
+    "note": "進路上の全敵にヒット（範囲攻撃）。特化IIIでクールタイム短縮。",
+    "ranks": [
+      {
+        "rank": 1,
+        "cooldown_sec": 16,
+        "hits": [
+          120
+        ]
+      },
+      {
+        "rank": 2,
+        "cooldown_sec": 16,
+        "hits": [
+          132
+        ]
+      },
+      {
+        "rank": 3,
+        "cooldown_sec": 16,
+        "hits": [
+          144
+        ]
+      },
+      {
+        "rank": 4,
+        "cooldown_sec": 16,
+        "hits": [
+          156
+        ]
+      },
+      {
+        "rank": 5,
+        "cooldown_sec": 16,
+        "hits": [
+          168
+        ]
+      },
+      {
+        "rank": 6,
+        "cooldown_sec": 16,
+        "hits": [
+          180
+        ]
+      },
+      {
+        "rank": 7,
+        "cooldown_sec": 16,
+        "hits": [
+          192
+        ]
+      },
+      {
+        "rank": 8,
+        "cooldown_sec": 16,
+        "hits": [
+          204
+        ]
+      },
+      {
+        "rank": 9,
+        "cooldown_sec": 16,
+        "hits": [
+          216
+        ]
+      },
+      {
+        "rank": "特化I",
+        "cooldown_sec": 16,
+        "hits": [
+          231
+        ]
+      },
+      {
+        "rank": "特化II",
+        "cooldown_sec": 16,
+        "hits": [
+          249
+        ]
+      },
+      {
+        "rank": "特化III",
+        "cooldown_sec": 15,
+        "hits": [
+          270
+        ]
+      }
+    ]
+  },
+  "ultimate": {
+    "name": "凍風斬り",
+    "description": "7回の斬撃を繰り出し、毎回物理ダメージを与える。最後の斬撃は敵に高いダメージを与える。",
+    "type": "physical",
+    "ult_cost": 70,
+    "hit_count": 7,
+    "hit1_to_6_break_value": 15,
+    "hit7_break_value": 20,
+    "note": "1〜6撃目は共通倍率、7撃目（必殺一撃）は別倍率。ult_costが70とリーフォン・ポグラニチニクの90より低い。",
+    "ranks": [
+      {
+        "rank": 1,
+        "hit_dmg": 36,
+        "finisher_dmg": 455
+      },
+      {
+        "rank": 2,
+        "hit_dmg": 40,
+        "finisher_dmg": 500
+      },
+      {
+        "rank": 3,
+        "hit_dmg": 43,
+        "finisher_dmg": 545
+      },
+      {
+        "rank": 4,
+        "hit_dmg": 47,
+        "finisher_dmg": 591
+      },
+      {
+        "rank": 5,
+        "hit_dmg": 50,
+        "finisher_dmg": 636
+      },
+      {
+        "rank": 6,
+        "hit_dmg": 54,
+        "finisher_dmg": 682
+      },
+      {
+        "rank": 7,
+        "hit_dmg": 58,
+        "finisher_dmg": 727
+      },
+      {
+        "rank": 8,
+        "hit_dmg": 61,
+        "finisher_dmg": 773
+      },
+      {
+        "rank": 9,
+        "hit_dmg": 65,
+        "finisher_dmg": 818
+      },
+      {
+        "rank": "特化I",
+        "hit_dmg": 69,
+        "finisher_dmg": 875
+      },
+      {
+        "rank": "特化II",
+        "hit_dmg": 75,
+        "finisher_dmg": 943
+      },
+      {
+        "rank": "特化III",
+        "hit_dmg": 81,
+        "finisher_dmg": 1023
+      }
+    ]
+  },
+  "weapon_type": "片手剣"
+}

@@ -43,6 +43,24 @@
   .badge{font-family:'Share Tech Mono',monospace;font-size:.55rem;padding:1px 5px;border-radius:2px;background:rgba(0,229,255,.15);color:var(--sp);}
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  /* 戦略リスト */
+  .strat-list{display:flex;flex-direction:column;gap:5px;}
+  .strat-item{display:grid;grid-template-columns:16px 20px 1fr;align-items:center;gap:6px;
+    background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;
+    transition:border-color .15s,opacity .15s;cursor:grab;user-select:none;}
+  .strat-item:active{cursor:grabbing;}
+  .strat-item.on{border-color:var(--sp);background:rgba(0,229,255,.04);}
+  .strat-item.off{opacity:.45;}
+  .strat-item.dragging{opacity:.3;border-style:dashed;}
+  .strat-item.drag-over{border-color:var(--c1);background:rgba(255,204,0,.06);}
+  .strat-drag{color:var(--dim);font-size:.7rem;line-height:1;cursor:grab;}
+  .strat-pri{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--dim);text-align:center;}
+  .strat-item.on .strat-pri{color:var(--sp);}
+  .strat-chk{width:14px;height:14px;accent-color:var(--sp);cursor:pointer;flex-shrink:0;}
+  .strat-body{min-width:0;}
+  .strat-name{font-size:.72rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .strat-item.on .strat-name{color:var(--sp);}
+  .strat-desc{font-size:.58rem;color:var(--dim);margin-top:1px;line-height:1.5;}
   /* アクティブキャラ簡易ステータス */
   .char-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:10px;}
   .cs-cell{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:6px 8px;text-align:center;}
@@ -203,13 +221,9 @@
 
 
         <div class="sec">
-          <div class="lbl">Battle Strategy（戦略）</div>
-          <select class="rsel" id="strategySel">
-            <option value="default">即時発動（操作キャラの戦技を優先）</option>
-            <option value="crush4">4段待機（クラッシュ4段でポグラニチニク戦技優先）</option>
-            <option value="alderia">アルデリア優先（腐食→脆弱コンボを維持）</option>
-          </select>
-          <div class="note" id="strategyNote">SP100到達時、操作中キャラの戦技を即時発動します。</div>
+          <div class="lbl">Battle Strategy（戦略・優先度順）</div>
+          <div class="strat-list" id="stratList"></div>
+          <div class="note" style="margin-top:6px">複数ONの場合、上位の戦略条件を優先して判定します。<br>条件を満たさない場合は次の戦略へ。全て外れた場合は操作キャラの戦技を即発動。</div>
         </div>
 
         <div class="sec">
@@ -366,7 +380,7 @@ function calcUltGauge(nsc, csc, usg=0) {
   return (6.5 * nsc + 10 * csc) * (1 + usg * 0.01);
 }
 
-function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy='default' }) {
+function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies=[] }) {
   const active = CHARS[activeId];
   const team   = teamIds.map(id => CHARS[id]);
 
@@ -547,68 +561,55 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy
       }
     }
 
-    // SP 100 → 戦技発動（戦略に基づいてキャラを選択）
-    // alderia戦略: 腐食も脆弱もない状態ではSPを温存（連携技→戦技コンボを優先）
-    //              SP200（上限）に達したら仕方なく発動
-    // ══ アルデリア優先戦略: 先読みロジック ══
-    // 次の重攻撃タイミングまでの時間 (timeToNextHeavy)
+    // ══ 戦略評価（優先度順） ══
+    // アルデリア先読み用: t2（次の重攻撃）までの残り時間
     const timeToNextHeavy = +(active.normal.loop_sec - normalTimer).toFixed(2);
-
-    // ── t2時点のクラッシュ段階を予測 ──
-    // t1→t2間に発生しうるイベントを考慮してクラッシュ段階を予測する
-    let predictedCrash = crashStage;
-    // (1) 転倒/浮遊タイマーが t2 までに発火するか
-    //     kdTimer は毎ステップ減算されており、timeToNextHeavy 以内に0以下になるなら発火
-    if (kdTimer <= timeToNextHeavy) {
-      // 転倒/浮遊: +1段（上限4）
-      if (predictedCrash < 4) predictedCrash++;
-      // リーフォンがチームにいる場合は転倒×2なのでさらに+1
-      if (team.some(c => c.id === 'reephone') && predictedCrash < 4) predictedCrash++;
-    }
-    // (2) t1時点でSP>=100かつ戦技が発動される場合のクラッシュ変化
-    //     ※ この判定自体がsp>=100の中にあるので、ここでは「もし発動するなら」の予測として
-    //       現在発動されない（alderiaHold）前提で考える → クラッシュ変化なし
-    //       ただし破砕（ポグ戦技）の場合、クラッシュ段階が消費されてリセットされうる
-    //       → 現在操作キャラがポグかつSP>=100なら破砕発動を予測
-    if (active.id === 'pogranicnik' && sp >= 100 && strategy !== 'alderia') {
-      // 破砕: stage>0なら0にリセット、stage=0なら1に増加
-      predictedCrash = predictedCrash > 0 ? 0 : 1;
-    }
-
-    // ── t2時点の腐食状態を予測 ──
-    // 腐食タイマーがt2までに切れるかどうか
+    // t2時点の腐食予測（タイマー考慮）
     const corrWillExpireByT2 = corrosion && corrTimer <= timeToNextHeavy;
     const predictedCorrosion  = corrosion && !corrWillExpireByT2;
+    // t2でアルデリア連携技が発動可能か: クラッシュ=0 かつ t2時点で腐食なし
+    const alderiaChainPossibleAtT2 = crashStage === 0 && !predictedCorrosion;
 
-    // ── t2でアルデリア連携技が発動可能か ──
-    // 条件: クラッシュ=0 かつ 腐食なし
-    const alderiaChainPossibleAtT2 = predictedCrash === 0 && !predictedCorrosion;
+    // 優先度順に有効な戦略を評価して skillUser と holdSP を決定
+    let skillUser  = active;  // デフォルト: 操作キャラ
+    let holdSP     = false;   // SP温存フラグ
+    let stratLabel = '';      // 発動理由ラベル
 
-    // ── 戦技を温存すべきか ──
-    //   アルデリア優先戦略 かつ t2で連携技が発動可能 かつ 現在腐食中でない
-    //   （腐食中は温存せず即発動して脆弱付与を優先）
-    const alderiaHold = strategy === 'alderia' && alderiaChainPossibleAtT2 && !corrosion;
-    if (sp >= 100 && (!alderiaHold || sp >= SP_MAX)) {
-      // 戦略によって発動キャラを決定
-      let skillUser = active; // デフォルト: 操作キャラ
-      if (strategy === 'crush4') {
+    for (const strat of strategies) {
+      if (!strat.enabled) continue;
+
+      if (strat.id === 'crush4') {
+        // クラッシュ4段 → ポグラニチニク戦技優先
         const pog = team.find(c => c.id === 'pogranicnik');
-        // クラッシュ4段かつポグラニチニクがチームにいれば優先
         if (crashStage >= 4 && pog) {
-          skillUser = pog;
+          skillUser = pog; stratLabel = '【4段待機】'; break;
         }
-      } else if (strategy === 'alderia') {
+      }
+      else if (strat.id === 'reephone') {
+        // クラッシュ=0 → リーフォン戦技優先（物理脆弱付与）
+        const ree = team.find(c => c.id === 'reephone');
+        if (crashStage === 0 && ree) {
+          skillUser = ree; stratLabel = '【リーフォン優先】'; break;
+        }
+      }
+      else if (strat.id === 'alderia') {
         const ald = team.find(c => c.id === 'alderia');
         if (ald) {
           if (corrosion) {
-            // 腐食中 → アルデリア戦技を代理発動（腐食消費→脆弱付与）
-            skillUser = ald;
+            // 腐食中 → アルデリア戦技を即代理発動（腐食消費→脆弱付与）
+            skillUser = ald; stratLabel = '【アルデリア優先】'; break;
+          } else if (alderiaChainPossibleAtT2) {
+            // t2で連携技可能 かつ クラッシュ=0 → SP温存
+            holdSP = true; break;
           }
-          // 脆弱中(腐食なし): 操作キャラの戦技を発動（skillUser=active のまま）
-          // 腐食も脆弱もない & SP<200: ここに到達しない（alderiaHoldで弾いている）
-          // 腐食も脆弱もない & SP>=200: 操作キャラの戦技を発動（溢れ防止）
         }
       }
+    }
+
+    // SP温存中はSP上限到達まで発動しない
+    if (sp >= 100 && (!holdSP || sp >= SP_MAX)) {
+      // holdSPかつ上限到達の場合は溢れ防止で操作キャラが発動
+      if (holdSP && sp >= SP_MAX) { skillUser = active; stratLabel = '【SP上限・溢れ防止】'; }
 
       sp = clamp(sp - 100);
       totalSpent += 100;
@@ -624,8 +625,7 @@ function simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy
       // 発動キャラが操作キャラ以外の場合ログに表示
       const nonActive = skillUser.id !== active.id
         ? `【${skillUser.name}が代理発動】` : '';
-      // alderia戦略でSP200溢れ防止発動の場合
-      const overflow = (strategy==='alderia' && !corrosion && alderiaChainPossibleAtT2 && sp >= SP_MAX) ? '【SP上限・溢れ防止で発動】' : '';
+      const overflow = stratLabel ? `${stratLabel}` : '';
 
       // 破砕（ポグラニチニク）
       if (sk.crash_effect?.type === 'crush') {
@@ -763,7 +763,13 @@ let teamIds    = ['reephone','pogranicnik','alderia','chen_senyuu'];
 let duration   = 60;
 let kdInterval = 20;
 let initStage  = 0;
-let strategy   = 'default';
+// 戦略リスト（優先度順、上が高優先）
+// enabled: ON/OFF, id: 戦略識別子
+let strategies = [
+  { id:'crush4',   enabled:true,  name:'4段待機',         desc:'クラッシュ4段時にポグラニチニクの戦技を優先発動' },
+  { id:'reephone', enabled:true,  name:'リーフォン優先',   desc:'クラッシュ=0の時にリーフォンの戦技を優先発動（物理脆弱付与）' },
+  { id:'alderia',  enabled:true,  name:'アルデリア優先',   desc:'t2で連携技可能 かつ クラッシュ=0 ならSP温存。腐食中は即発動（脆弱付与）' },
+];
 
 function init() {
   const cg = document.getElementById('charGrid');
@@ -786,16 +792,7 @@ function init() {
   };
   document.getElementById('inpKD').oninput = e => { kdInterval=+e.target.value||20; run(); };
   document.getElementById('inpIS').oninput = e => { initStage=Math.min(4,Math.max(0,+e.target.value||0)); run(); };
-  document.getElementById('strategySel').onchange = e => {
-    strategy = e.target.value;
-    const notes = {
-      default: 'SP100到達時、操作中キャラの戦技を即時発動します。',
-      crush4:  'クラッシュが4段のとき、ポグラニチニクの戦技を優先発動します（非操作中でも可）。',
-      alderia: '腐食中にSP100到達したらアルデリアの戦技を優先発動（腐食→脆弱コンボ）。腐食/脆弱が切れた後の重攻撃で連携技が自動発動し、コンボを再開します。',
-    };
-    document.getElementById('strategyNote').textContent = notes[strategy] || '';
-    run();
-  };
+  renderStratList();
   run();
 }
 
@@ -832,6 +829,61 @@ function renderCharStats() {
     </div>`;
 }
 
+let dragSrcIdx = null;
+
+function renderStratList() {
+  const el = document.getElementById('stratList');
+  el.innerHTML = strategies.map((s, i) => `
+    <div class="strat-item ${s.enabled?'on':'off'}"
+         data-idx="${i}" draggable="true"
+         ondragstart="onDragStart(event,${i})"
+         ondragover="onDragOver(event)"
+         ondragenter="onDragEnter(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event,${i})"
+         ondragend="onDragEnd(event)">
+      <span class="strat-drag">⠿</span>
+      <div class="strat-pri">${i+1}</div>
+      <div class="strat-body" style="display:flex;align-items:center;gap:6px;min-width:0;">
+        <input type="checkbox" class="strat-chk" ${s.enabled?'checked':''}
+          onclick="event.stopPropagation()" onchange="toggleStrat('${s.id}',this.checked)">
+        <div style="min-width:0;">
+          <div class="strat-name">${s.name}</div>
+          <div class="strat-desc">${s.desc}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleStrat(id, enabled) {
+  const s = strategies.find(x => x.id === id);
+  if (s) { s.enabled = enabled; renderStratList(); run(); }
+}
+
+function onDragStart(e, idx) {
+  dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = e.currentTarget; if(el) el.classList.add('dragging'); }, 0);
+}
+function onDragOver(e)  { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDragEnter(e) { e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e, idx) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (dragSrcIdx === null || dragSrcIdx === idx) return;
+  const moved = strategies.splice(dragSrcIdx, 1)[0];
+  strategies.splice(idx, 0, moved);
+  dragSrcIdx = null;
+  renderStratList(); run();
+}
+function onDragEnd(e) {
+  dragSrcIdx = null;
+  document.querySelectorAll('.strat-item').forEach(el => {
+    el.classList.remove('dragging','drag-over');
+  });
+}
+
 function renderTeam() {
   document.getElementById('teamGrid').innerHTML = teamIds.map((id,i) => {
     const c=CHARS[id]; const ac=id===activeId;
@@ -846,7 +898,7 @@ function renderTeam() {
 function run() {
   // キャラのbaseline状態をリセット
   Object.values(CHARS).forEach(c => { c._nscBaseline=0; });
-  const r = simulate({ activeId, teamIds, duration, kdInterval, initStage, strategy });
+  const r = simulate({ activeId, teamIds, duration, kdInterval, initStage, strategies });
   render(r);
 }
 

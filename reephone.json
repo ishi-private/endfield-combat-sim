@@ -1,0 +1,488 @@
+{
+  "id": "reephone",
+  "name": "リーフォン",
+  "rarity": null,
+  "class": null,
+  "arts": "physical",
+  "normal_attack": {
+    "name": "摧破",
+    "description": "最大4段の攻撃で敵に物理ダメージを与える。操作中のオペレーターの場合、重攻撃はブレイク値19を与える。落下攻撃：空中で通常攻撃を使用すると、落下して周囲の敵に物理ダメージを与える。終撃：近くにブレイク状態の敵がいるときに通常攻撃を使用すると、その敵に終撃を行い、高い物理ダメージを与えてSPを一定量回復する。",
+    "type": "physical",
+    "sp_regen_on_finisher": true,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          24,
+          29,
+          35,
+          68
+        ],
+        "finisher": 400,
+        "plunge": 80
+      },
+      {
+        "rank": 2,
+        "hits": [
+          27,
+          32,
+          39,
+          74
+        ],
+        "finisher": 440,
+        "plunge": 88
+      },
+      {
+        "rank": 3,
+        "hits": [
+          29,
+          35,
+          42,
+          81
+        ],
+        "finisher": 480,
+        "plunge": 96
+      },
+      {
+        "rank": 4,
+        "hits": [
+          32,
+          38,
+          46,
+          88
+        ],
+        "finisher": 520,
+        "plunge": 104
+      },
+      {
+        "rank": 5,
+        "hits": [
+          34,
+          41,
+          49,
+          95
+        ],
+        "finisher": 560,
+        "plunge": 112
+      },
+      {
+        "rank": 6,
+        "hits": [
+          36,
+          44,
+          53,
+          101
+        ],
+        "finisher": 600,
+        "plunge": 120
+      },
+      {
+        "rank": 7,
+        "hits": [
+          39,
+          47,
+          56,
+          108
+        ],
+        "finisher": 640,
+        "plunge": 128
+      },
+      {
+        "rank": 8,
+        "hits": [
+          41,
+          49,
+          60,
+          115
+        ],
+        "finisher": 680,
+        "plunge": 136
+      },
+      {
+        "rank": 9,
+        "hits": [
+          44,
+          52,
+          63,
+          122
+        ],
+        "finisher": 720,
+        "plunge": 144
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          47,
+          56,
+          67,
+          130
+        ],
+        "finisher": 770,
+        "plunge": 154
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          50,
+          60,
+          73,
+          140
+        ],
+        "finisher": 830,
+        "plunge": 166
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          55,
+          65,
+          79,
+          152
+        ],
+        "finisher": 900,
+        "plunge": 180
+      }
+    ],
+    "heavy_attack_break_value": 19,
+    "heavy_attack_sp_regen": 20,
+    "heavy_attack_time_sec": 3.05,
+    "loop_time_sec": 3.62,
+    "loop_time_with_cancel_sec": null,
+    "break_per_sec": 6.23,
+    "break_per_sec_loop": null,
+    "break_per_sec_with_cancel": null,
+    "break_per_sec_mixed": 5.25,
+    "sp_regen_per_sec": 6.56,
+    "sp_regen_per_sec_loop": null,
+    "sp_regen_per_sec_with_cancel": null,
+    "sp_regen_per_sec_mixed": 5.52
+  },
+  "skill": {
+    "name": "浄化身",
+    "description": "前進しながら槍を振り、物理ダメージを2回与える。その後、地面に重い打撃を放ち、再度前方のすべての敵に物理ダメージと転倒効果を与える。最後の一撃を受けた敵がクラッシュ状態でない場合、追加で物理脆弱を付与する。",
+    "type": "physical",
+    "sp_cost": 100,
+    "hit3_break_value": 10,
+    "phys_vuln_duration_sec": 12,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          38,
+          38,
+          119
+        ],
+        "phys_vuln_pct": 5
+      },
+      {
+        "rank": 2,
+        "hits": [
+          42,
+          42,
+          131
+        ],
+        "phys_vuln_pct": 5
+      },
+      {
+        "rank": 3,
+        "hits": [
+          46,
+          46,
+          143
+        ],
+        "phys_vuln_pct": 5
+      },
+      {
+        "rank": 4,
+        "hits": [
+          50,
+          50,
+          155
+        ],
+        "phys_vuln_pct": 5
+      },
+      {
+        "rank": 5,
+        "hits": [
+          53,
+          53,
+          167
+        ],
+        "phys_vuln_pct": 5
+      },
+      {
+        "rank": 6,
+        "hits": [
+          57,
+          57,
+          178
+        ],
+        "phys_vuln_pct": 7
+      },
+      {
+        "rank": 7,
+        "hits": [
+          61,
+          61,
+          190
+        ],
+        "phys_vuln_pct": 7
+      },
+      {
+        "rank": 8,
+        "hits": [
+          65,
+          65,
+          202
+        ],
+        "phys_vuln_pct": 7
+      },
+      {
+        "rank": 9,
+        "hits": [
+          69,
+          69,
+          214
+        ],
+        "phys_vuln_pct": 9
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          73,
+          73,
+          229
+        ],
+        "phys_vuln_pct": 10
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          79,
+          79,
+          247
+        ],
+        "phys_vuln_pct": 10
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          86,
+          86,
+          268
+        ],
+        "phys_vuln_pct": 12
+      }
+    ]
+  },
+  "chain_skill": {
+    "name": "忿怒形",
+    "description": "物理脆弱または破砕状態の敵が、操作中のオペレーターの重攻撃を受けると発動可能。化身を放ち、槍で突き刺す。物理ダメージを与え、リンク状態を獲得する。",
+    "type": "physical",
+    "sp_cost": 0,
+    "trigger_condition": "enemy_has_phys_vuln_or_crush AND operator_is_active AND heavy_attack_hits",
+    "cooldown_sec": 16,
+    "hit2_break_value": 2,
+    "link_duration_sec": 20,
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          47,
+          167
+        ]
+      },
+      {
+        "rank": 2,
+        "hits": [
+          51,
+          183
+        ]
+      },
+      {
+        "rank": 3,
+        "hits": [
+          56,
+          200
+        ]
+      },
+      {
+        "rank": 4,
+        "hits": [
+          61,
+          217
+        ]
+      },
+      {
+        "rank": 5,
+        "hits": [
+          65,
+          233
+        ]
+      },
+      {
+        "rank": 6,
+        "hits": [
+          70,
+          250
+        ]
+      },
+      {
+        "rank": 7,
+        "hits": [
+          75,
+          267
+        ]
+      },
+      {
+        "rank": 8,
+        "hits": [
+          79,
+          283
+        ]
+      },
+      {
+        "rank": 9,
+        "hits": [
+          84,
+          300
+        ]
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          90,
+          321
+        ]
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          97,
+          346
+        ]
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          105,
+          375
+        ]
+      }
+    ]
+  },
+  "ultimate": {
+    "name": "不動心",
+    "description": "化身を放ち、不動杵で前方の地面に重い打撃を放つ。広範囲の敵に物理ダメージと転倒効果を与え、すべての敵を中心に引き寄せる。一定時間後、打撃範囲内の敵に再度高い物理ダメージと転倒効果を与える。必殺技発動時にリンク状態を消費した場合、追加で高い物理ダメージを与える。",
+    "type": "physical",
+    "ult_cost": 90,
+    "cooldown_sec": 15,
+    "hit1_break_value": 5,
+    "hit2_break_value": 5,
+    "bonus_break_value": 5,
+    "effects": [
+      "knockdown",
+      "pull_to_center"
+    ],
+    "bonus_condition": "consume_link_state",
+    "ranks": [
+      {
+        "rank": 1,
+        "hits": [
+          178,
+          178
+        ],
+        "bonus": 267
+      },
+      {
+        "rank": 2,
+        "hits": [
+          196,
+          196
+        ],
+        "bonus": 294
+      },
+      {
+        "rank": 3,
+        "hits": [
+          213,
+          213
+        ],
+        "bonus": 320
+      },
+      {
+        "rank": 4,
+        "hits": [
+          231,
+          231
+        ],
+        "bonus": 347
+      },
+      {
+        "rank": 5,
+        "hits": [
+          249,
+          249
+        ],
+        "bonus": 374
+      },
+      {
+        "rank": 6,
+        "hits": [
+          267,
+          267
+        ],
+        "bonus": 400
+      },
+      {
+        "rank": 7,
+        "hits": [
+          284,
+          284
+        ],
+        "bonus": 427
+      },
+      {
+        "rank": 8,
+        "hits": [
+          302,
+          302
+        ],
+        "bonus": 454
+      },
+      {
+        "rank": 9,
+        "hits": [
+          320,
+          320
+        ],
+        "bonus": 480
+      },
+      {
+        "rank": "特化I",
+        "hits": [
+          342,
+          342
+        ],
+        "bonus": 514
+      },
+      {
+        "rank": "特化II",
+        "hits": [
+          369,
+          369
+        ],
+        "bonus": 554
+      },
+      {
+        "rank": "特化III",
+        "hits": [
+          400,
+          400
+        ],
+        "bonus": 600
+      }
+    ]
+  },
+  "weapon_type": "長柄"
+}
